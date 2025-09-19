@@ -27,5 +27,8 @@ jobs:
 
       # If you ever add integration tests that need env vars,
       # you can pass them here with env: DB_URL: ${{ secrets.DB_URL }}
-      - name: Maven verify
-        run: mvn -B -ntp verify
+      - name: Make Maven Wrapper executable
+        run: chmod +x mvnw
+
+      - name: Build & test
+        run: ./mvnw -B -ntp verify
