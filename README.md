@@ -16,4 +16,4 @@ Flyway runs automatically on startup from src/main/resources/db/migration.
 ---
 
 ## 📅 Project Schedule
-See the [Semester Project Plan](./schedule/ProjectPlan.md) for calendar files, screenshots, and live links.
+See the [Semester Project Plan](./schedule/SemesterPlan.md) for calendar files, screenshots, and live links.
