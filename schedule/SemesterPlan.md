@@ -9,6 +9,15 @@ It reflects the timeline for setup, development (frontend + backend), and final 
 - **Calendar name:** SameBoat Project Plan (Fall 2025)
 - **Description:** This calendar contains the planned milestones, deliverables, and weekly tasks for the SameBoat project during Fall 2025. It reflects the 12-week semester action plan, including setup, core features, and final presentation milestones.
 
+### Links to Documentation:
+See the [README](../README.md) for project overview and setup instructions.
+
+See the [Architecture](../docs/Architecture.md) for the Project Architecture.
+
+See the [Project Plan](../docs/ProjectPlan.md) for the Project Plan.
+
+See the [MVP Scope](../docs/MvpScope.md) for MVP Scope and User Stories.
+
 ---
 
 ## Files
