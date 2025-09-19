@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${DB_URL}           # we'll pass this via env var
+  jpa:
+    hibernate:
+      ddl-auto: none         # schema managed by Flyway
+    open-in-view: false
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+    health:
+      show-details: when-authorized
+
+server:
+  port: 8080
