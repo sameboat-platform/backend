@@ -1,0 +1,11 @@
+openapi: 3.0.3
+info:
+  title: SameBoat API
+  version: 0.0.1
+paths:
+  /health:
+    get:
+      summary: Liveness check
+      responses:
+        '200':
+          description: OK

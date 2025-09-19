@@ -1,3 +1,4 @@
+![Backend CI](https://github.com/ArchILLlect/sameboat-backend/actions/workflows/backend-ci.yml/badge.svg)
 # SameBoat Backend (Spring Boot + Java 21)
 
 ## Run locally
