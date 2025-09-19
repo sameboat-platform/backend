@@ -7,3 +7,5 @@
 - Week 9–10: Safety checks
 - Week 11: Presentation draft
 - Week 12: Polish + present
+
+📅 [Semester Plan Calendar](../schedule/semester-plan.ics)
