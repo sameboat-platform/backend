@@ -41,6 +41,11 @@ This backlog captures agreed future improvements not yet implemented. Items are 
 | TEST-001 | Coverage Badge | Generate Jacoco badge and publish to README | P3 | Use shields.io or GitHub Pages artifact |
 | TEST-002 | Mutation Testing (Optional) | Integrate PIT for critical packages (auth, session) | P4 | Only if time permits; track mutation score |
 
+Sanity test:
+Open a PR that edits an old migration → CI fails → PR shows required check failing → merge button blocked.
+Open a PR that only adds a new migration → CI passes → merge allowed.
+Name it something clear like “Protect main (PR + CI)” and you’re done.
+
 ---
 ## 6. Documentation Enhancements
 | ID | Item | Description | Priority | Notes |
