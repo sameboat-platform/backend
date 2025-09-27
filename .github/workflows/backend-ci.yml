@@ -1,6 +1,7 @@
 name: Backend CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
@@ -17,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed so immutability script can diff against origin/main
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -25,10 +28,33 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      # If you ever add integration tests that need env vars,
-      # you can pass them here with env: DB_URL: ${{ secrets.DB_URL }}
-      - name: Make Maven Wrapper executable
-        run: chmod +x mvnw
+      - name: Make scripts executable
+        run: |
+          chmod +x mvnw
+          chmod +x scripts/check-migration-immutability.sh
 
-      - name: Build & test
+      - name: Migration immutability check
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}   # set on pull_request, empty on push
+        run: |
+          # Ensure we have all remote branches locally
+          git fetch --no-tags --prune --depth=0 origin "+refs/heads/*:refs/remotes/origin/*"
+
+          if [ -n "$BASE_REF" ]; then
+            echo "Using PR base: origin/$BASE_REF"
+            ./scripts/check-migration-immutability.sh "origin/$BASE_REF"
+          else
+            echo "No PR base (push/manual) — auto-detecting default branch"
+            ./scripts/check-migration-immutability.sh
+          fi
+
+      - name: Build & unit/integration tests (skip migration container test)
         run: ./mvnw -B -ntp verify
+
+      - name: Run migration schema test profile
+        run: ./mvnw -B -ntp -Pwith-migration-test test
+        env:
+          # Provide a Postgres socket only if needed later; currently migration test uses Testcontainers
+          # Optionally could set TESTCONTAINERS_RYUK_DISABLED to true if stability issues arise
+          TESTCONTAINERS_RYUK_DISABLED: 'false'
