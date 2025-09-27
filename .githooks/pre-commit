@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Pre-commit hook: migration immutability enforcement.
+# Enable with: git config core.hooksPath .githooks
+# Ensure executable: chmod +x .githooks/pre-commit scripts/check-migration-immutability.sh
+
+scripts/check-migration-immutability.sh || exit 1

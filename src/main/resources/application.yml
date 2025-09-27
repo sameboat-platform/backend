@@ -1,6 +1,9 @@
 spring:
   datasource:
-    url: ${DB_URL}           # we'll pass this via env var
+    # Priority: explicit Spring datasource URL > DB_URL alias > local default
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://localhost:5432/sameboat}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:postgres}}
   jpa:
     hibernate:
       ddl-auto: none         # schema managed by Flyway
@@ -14,6 +17,7 @@ management:
     web:
       exposure:
         include: health,info
+  endpoint:
     health:
       show-details: when-authorized
 
