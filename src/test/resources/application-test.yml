@@ -16,6 +16,8 @@ logging:
     org.springframework.security: WARN
     com.sameboat.backend.security: DEBUG
 sameboat:
+  security:
+    enabled: true
   auth:
     dev-auto-create: true
     stub-password: dev
