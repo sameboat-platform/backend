@@ -1,6 +1,6 @@
 package com.sameboat.backend.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -12,13 +12,14 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${sameboat.cors.allowed-origins:http://localhost:5173}")
-    private java.util.List<String> allowedOrigins;
+    private final SameboatProperties props;
+
+    public CorsConfig(SameboatProperties props) { this.props = props; }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        for (String origin : allowedOrigins) {
+        for (String origin : props.getCors().getAllowedOrigins()) {
             String o = origin.trim();
             if (!o.isEmpty()) cfg.addAllowedOrigin(o);
         }
