@@ -16,6 +16,8 @@ logging:
     org.springframework.security: WARN
     com.sameboat.backend.security: DEBUG
 sameboat:
+  security:
+    enabled: true
   auth:
     dev-auto-create: true
     stub-password: dev
@@ -25,4 +27,5 @@ sameboat:
   session:
     ttl-days: 7
   cors:
-    allowed-origins: "http://localhost:5173"
+    allowed-origins:
+      - http://localhost:5173

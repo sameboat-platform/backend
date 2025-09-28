@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -16,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(SessionService.class)
+@ActiveProfiles("test")
+@TestPropertySource(properties = "sameboat.security.enabled=false")
 class SessionServiceTest {
 
     @Autowired
@@ -48,4 +52,3 @@ class SessionServiceTest {
         // nothing to assert; just ensure no exception
     }
 }
-

@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Maven dependencies (pom.xml)
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "05:30"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 5
+    ignore:
+      # optional: avoid major jumps until you're ready
+      - dependency-name: "org.flywaydb:flyway-core"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly

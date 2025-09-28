@@ -1,5 +1,10 @@
-![Backend CI](https://github.com/ArchILLtect/sameboat-backend/actions/workflows/backend-ci.yml/badge.svg)
+![Backend CI](https://github.com/sameboat-platform/sameboat-backend/actions/workflows/backend-ci.yml/badge.svg)
 # SameBoat Backend (Spring Boot + Java 21)
+
+> Repository migration: moved from `ArchILLtect/*` to `sameboat-platform/*` on 2025-09-28. Update any local remotes:
+> ```bash
+> git remote set-url origin git@github.com:sameboat-platform/sameboat-backend.git
+> ```
 
 > Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Week 3 Plan](./docs/Weekly%20Plan%20Docs/week_3_plan_same_boat_honors_project_fall_2025.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
 
