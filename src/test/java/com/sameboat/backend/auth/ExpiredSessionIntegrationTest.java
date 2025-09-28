@@ -56,4 +56,18 @@ class ExpiredSessionIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("SESSION_EXPIRED"));
     }
+
+    @Test
+    @DisplayName("Expired session via sb_session cookie returns SESSION_EXPIRED")
+    void expiredSessionAliasCookie() throws Exception {
+        String cookieHeader = obtainSessionCookie();
+        String token = cookieHeader.substring(cookieHeader.indexOf('=') + 1);
+        UUID sessionId = UUID.fromString(token);
+        SessionEntity session = sessionRepository.findById(sessionId).orElseThrow();
+        session.setExpiresAt(OffsetDateTime.now().minusMinutes(10));
+        sessionRepository.save(session);
+        mvc.perform(get("/me").header("Cookie", "sb_session=" + token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("SESSION_EXPIRED"));
+    }
 }

@@ -46,20 +46,21 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    @DisplayName("Login failure returns UNAUTHORIZED error envelope")
+    @DisplayName("Login failure returns BAD_CREDENTIALS error envelope")
     void loginFailure() throws Exception {
         mvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"a@b.com\",\"password\":\"wrong\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"));
+                .andExpect(jsonPath("$.error").value("BAD_CREDENTIALS"));
     }
 
     @Test
-    @DisplayName("/me unauthorized without cookie")
+    @DisplayName("/me UNAUTHENTICATED without cookie")
     void meUnauthorized() throws Exception {
         mvc.perform(get("/me"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("UNAUTHENTICATED"));
     }
 
     @Test
@@ -86,6 +87,7 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isNoContent());
 
         mvc.perform(get("/me").cookie(sessionCookie))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("UNAUTHENTICATED"));
     }
 }

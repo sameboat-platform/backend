@@ -69,9 +69,10 @@ class UserPatchIntegrationTest {
     }
 
     @Test
-    @DisplayName("Malformed SBSESSION cookie is ignored -> 401 on /me")
+    @DisplayName("Malformed SBSESSION cookie is ignored -> 401 UNAUTHENTICATED on /me")
     void malformedCookieUnauthorized() throws Exception {
         mvc.perform(get("/me").header("Cookie", "SBSESSION=not-a-uuid"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("UNAUTHENTICATED"));
     }
 }
