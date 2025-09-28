@@ -1,7 +1,7 @@
 ![Backend CI](https://github.com/ArchILLtect/sameboat-backend/actions/workflows/backend-ci.yml/badge.svg)
 # SameBoat Backend (Spring Boot + Java 21)
 
-> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md)
+> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Week 3 Plan](./docs/Weekly%20Plan%20Docs/week_3_plan_same_boat_honors_project_fall_2025.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
 
 ## Run locally
 1. Copy `.env.example` → `.env` and fill appropriate JDBC DS values (or rely on defaults in `application.yml`).

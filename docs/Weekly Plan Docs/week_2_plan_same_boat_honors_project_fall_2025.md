@@ -17,18 +17,62 @@
 
 ---
 
+## Week 2 IMPLEMENTATION OUTCOME (Added Post‑Execution)
+
+### What Actually Got Built
+- Replaced the simple dev credential stub with **BCrypt password hashing** (`PasswordEncoder` bean) and a **real registration flow** (`POST /auth/register`).
+- Introduced distinct 401/409 error codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`, plus `VALIDATION_ERROR`, `BAD_REQUEST`, `INTERNAL_ERROR`.
+- Added session alias cookie support (`SBSESSION` primary, `sb_session` accepted) and environment‑aware cookie attributes (prod: Secure + domain `.sameboat.<tld>`; dev/test: no Secure/domain).
+- Implemented **type‑safe configuration binding** via `SameboatProperties` (auth, cookie, session, cors) with Spring configuration processor metadata.
+- Added `application-prod.yml` with profile activation, secure cookie, extended 14‑day TTL, and restricted CORS origins.
+- Centralized CORS configuration reading from `sameboat.cors.allowed-origins` list; credentials enabled for cookie auth.
+- Added registration & login integration tests: happy path, duplicate email, wrong password, garbage cookie (UNAUTHENTICATED), expired session (SESSION_EXPIRED), alias cookie test.
+- JaCoCo **coverage gate set to 70%** instructions (raised from earlier draft 60%). All tests green under `mvn verify`.
+- Documentation fully updated (`README.md`, `docs/api.md`) to reflect new flows & error taxonomy.
+
+### Deviations from Original Plan
+| Original Plan Item | Actual Implementation / Change |
+|--------------------|--------------------------------|
+| Dev header auth or simple stub only | Upgraded to hashed password + registration sooner (Week 2 instead of Week 3) |
+| Session token conceptually opaque (maybe in-memory) | Persisted Postgres sessions with expiry + touch logic (no in‑memory fallback) |
+| Generic `UNAUTHORIZED` error code | Replaced with clearer `UNAUTHENTICATED` / `BAD_CREDENTIALS` / `SESSION_EXPIRED` distinctions |
+| Auto find-or-create user on login | Deprecated & removed in favor of explicit registration (except optional dev auto-create flag) |
+| Coverage target 60% | Adopted 70% earlier to enforce discipline |
+| Planned DevAuthFilter | Not needed; session filter + registration/login replaced it |
+
+### Deferred / Not Done (Still Future Work)
+- Password reset / email verification
+- JWT or token rotation strategy (still planned for later milestone)
+- Idle timeout & session rotation / refresh semantics
+- Role-based authorization beyond basic `ROLE_USER`
+- OpenAPI spec sync with generated endpoints
+- Frontend MSW + coverage improvements (not fully documented here)
+
+### Current Error Codes
+`UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`, `VALIDATION_ERROR`, `BAD_REQUEST`, `INTERNAL_ERROR`.
+
+### Key Risks / Follow-Up
+| Risk | Mitigation / Next Step |
+|------|------------------------|
+| Session table growth | Add scheduled cleanup (Week 3) for expired sessions |
+| Lack of password complexity checks | Add validation annotations + custom constraint next iteration |
+| No rate limiting on login | Introduce minimal attempt counter or bucket4j filter |
+| JWT migration path not yet prototyped | Spike in Week 3: adapt AuthPrincipal from session to token claims |
+
+---
+
 ## Architecture Notes for Week 2
 
 - **Security strategy (Week 2):**
-  - Use Spring profiles: `dev`, `test`, `prod`.
-  - In `dev`/`test`: enable **Dev Header Auth** (accepts `X-Dev-User` email) **or** simple credential stub (email + password `dev`), returning a **server session cookie** (HttpOnly). Keep it minimal and replaceable.
-  - In `prod`: only the health endpoints are public; all others require auth (will be refined Week 3+). JWT remains a planned migration target.
+  - Active now: BCrypt + server-side sessions + cookie auth across dev/test/prod.
+  - Dev/test may auto-create users if `sameboat.auth.dev-auto-create=true` with stub password (defaults false in dev, true only in test profile when set).
+  - Prod adds Secure cookie & domain; all non-health endpoints require authentication.
 
-- **Session model:** ephemeral server‑side sessions stored in Postgres (`sessions` table) or in‑memory map under `dev`/`test` profile. Prefer Postgres to make e2e predictable in CI.
+- **Session model:** Postgres-persisted sessions with `expiresAt` and `lastSeenAt` touch. Filter checks expiry = `SESSION_EXPIRED`; invalid UUID or missing = `UNAUTHENTICATED`.
 
-- **Forward path to JWT:** isolate auth in `/auth/**` controller + `AuthService`; add an `AuthPrincipal` and a `JwtService` interface with a no‑op dev impl. When ready, swap impl.
+- **Forward path to JWT:** abstraction preserved (AuthPrincipal). Can add a parallel token issuance service without refactoring controllers significantly.
 
-> Revised plan adjustment: final implementation sequence focuses first on stable migrations (V1–V3), then `login` + `/me`, deferring optional profile edit UI to a stretch goal.
+> Revised outcome note: The earlier notion of a DevAuthFilter was superseded by the combined registration + session approach.
 
 ---
 
@@ -64,7 +108,7 @@ create table if not exists sessions (
 create index if not exists idx_sessions_token on sessions (session_token);
 ```
 
-> Current repo state: `V1__init.sql`, `V2__users_and_sessions.sql` (as designed above) and a reconciliation `V3__users_additional_columns.sql` to align early V1 schema with the richer user model *without editing historical files* (immutability rule).
+> Current repo state: `V1__init.sql`, `V2__users_and_sessions.sql`, `V3__users_additional_columns.sql` (immutability enforced).
 
 ### 2) Domain + DTOs
 
@@ -99,234 +143,100 @@ public record LoginRequest(String email, String password) {}
 public record LoginResponse(UserDto user) {}
 ```
 
-### 3) Security Config (Week 2 stub)
+### 3) Security Config (Final Week 2 State)
+- Public: `/actuator/health`, `/auth/login`, `/auth/register` (and `/api/auth/*` variants).
+- Authenticated: `/auth/logout`, `/me` (GET/PATCH) + any future protected endpoints.
+- Cookie names accepted: `SBSESSION` (primary), `sb_session` (alias).
+- Distinct 401 vs 409 handling via mapped error codes.
 
-- Public: `GET /actuator/health`, `POST /auth/login`.
-- Authenticated: `POST /auth/logout`, `GET /me`, `PATCH /me`.
-- Cookie: `SBSESSION=<opaque token>` `HttpOnly; SameSite=Lax; Secure` (Secure on non‑dev).
-
-```java
-// Example SecurityFilterChain bean (simplified excerpt)
-@Bean
-SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/actuator/health", "/auth/login").permitAll()
-            .anyRequest().authenticated())
-        .addFilterBefore(devAuthFilter, UsernamePasswordAuthenticationFilter.class)
-        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-    return http.build();
-}
-```
-> Revised plan clarifies naming: although termed "session", behavior remains stateless per request validation against stored session entries.
-
-### 4) Controllers (Week 2)
-
-**AuthController**
-- `POST /auth/login` → accept `LoginRequest`.
-  - **DEV rule:** if password equals `"dev"` create or find user by email, issue session token valid 7 days; return `LoginResponse` (with `Set-Cookie: SBSESSION=…`).
-  - `test` profile can behave the same.
-- `POST /auth/logout` → invalidate session token (delete row) + clear cookie.
-
-**UserController**
-- `GET /me` → return current user `UserDto`.
-- `PATCH /me` → update subset of fields from `UpdateUserRequest`.
+### 4) Controllers (Implemented)
+- `POST /auth/register` (returns `{userId}` + cookie) — 200, 409 on duplicate.
+- `POST /auth/login` — returns user envelope or `BAD_CREDENTIALS`.
+- `POST /auth/logout` — invalidates session & clears cookie.
+- `GET /me` — returns user or `UNAUTHENTICATED` / `SESSION_EXPIRED`.
+- `PATCH /me` — partial update with validation; empty body → `VALIDATION_ERROR`.
 
 ### 5) Tests (Backend)
-
-- **Unit:** `UserServiceTest`, `AuthServiceTest` covering create/find, update, session creation/expiry logic (e.g., 7 days, expired purges).
-- **Integration (MockMvc + Testcontainers):**
-  - `POST /auth/login` happy path + invalid password.
-  - Cookie propagation to `GET /me`.
-  - `PATCH /me` persists changes; attempt without cookie → 401.
-  - `POST /auth/logout` → subsequent `GET /me` 401.
-
-> (Optional) nightly job to prune expired sessions (Deferred — not required for Week 2 DoD).
+Implemented suite includes:
+- Login success/failure
+- Registration success + duplicate + wrong password + correct follow-up login
+- Session expiration (primary + alias cookie)
+- Garbage / missing cookie (UNAUTHENTICATED)
+- Profile patch success & validations
 
 ### 6) CI Enhancements (Backend)
-
-- Use **Testcontainers** (no dedicated Postgres service container required) for integration tests & migration validation.
-- Cache Maven dependencies for faster builds.
-- Add coverage gate (target ≥ 70%).
-- Separate migration schema test via Maven profile `with-migration-test` (runs Testcontainers migration check).
-
-**Example commands:**
-```bash
-mvn verify                   # regular tests (migration test skipped)
-mvn -Pwith-migration-test test  # includes migration schema verification
-```
+- JaCoCo gate **70%** (passed)
+- Migration immutability check script integrated
+- Optional migration schema profile remains (`-Pwith-migration-test`)
 
 ---
 
-## Frontend Tasks (Vite + React + TS)
-
-### 1) API Client + Auth Context
-
-- Create `/src/lib/api.ts` with a `fetchJson` helper that includes credentials (cookie), throws on non‑2xx, and handles 401.
-- Add `/src/context/AuthProvider.tsx` exposing `{ user, login(email, password), logout(), refreshMe() }`.
-- Consider React Query for caching/invalidations.
-
-### 2) Screens + Routes
-
-- `LoginPage.tsx` → email + password (placeholder; password default text: "dev").
-- `ProfilePage.tsx` → view + (optional) edit; PATCH optional if time.
-- `ProtectedRoute` wrapper redirects unauthenticated users to `/login`.
-
-### 3) Types + API contracts
-
-```ts
-export type UserDto = {
-  id: string;
-  email: string;
-  displayName?: string;
-  avatarUrl?: string;
-  bio?: string;
-  timezone?: string;
-  role: 'USER' | 'ADMIN';
-};
-
-export type LoginRequest = { email: string; password: string };
-export type LoginResponse = { user: UserDto };
-```
-
-### 4) Tests (Frontend)
-
-- **Unit:** components render, form validation, API helpers.
-- **Integration (MSW):**
-  - successful login → sets user context, navigates to `/profile`.
-  - bad login → shows error.
-  - `PATCH /me` updates state (if implemented this week).
-  - 401 interceptor redirects to `/login`.
-
-### 5) CI (Frontend)
-
-- Vitest + jsdom; add coverage gate (≥ 70%) if time, else document deferral.
-
----
-
-## Deliverables Checklist (Week 2)
+## Deliverables Checklist (Week 2) — Updated Status
 
 **Backend**
-- [ ] Migrations V1 through V3 applied (V3 reconciliation) — no edits to historical files
-- [ ] Entities/Repos/Services for `User` + `Session`
-- [ ] SecurityConfig + DevAuthFilter (profiles: dev,test)
-- [ ] Controllers: `/auth/login`, `/auth/logout`, `/me` (GET/PATCH)
-- [ ] Unit + integration tests (MockMvc + Testcontainers)
-- [ ] Migration schema test profile (with-migration-test)
-- [ ] CI coverage gate configured
+- [x] Migrations V1–V3 applied (immutability enforced)
+- [x] Entities/Repos/Services for User + Session
+- [x] SecurityConfig + session filter (DevAuthFilter superseded)
+- [x] Controllers: `/auth/register`, `/auth/login`, `/auth/logout`, `/me` (GET/PATCH)
+- [x] Registration flow (email uniqueness + BCrypt hashing)
+- [x] Distinct auth error codes implemented (`UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`)
+- [x] Cookie policy (dev vs prod: Secure/domain & TTL) + alias cookie `sb_session`
+- [x] Type-safe configuration (`SameboatProperties`) + prod profile
+- [x] Unit + integration tests (login, register, duplicate, wrong password, expired, alias cookie, profile patch)
+- [x] Migration schema test profile (`with-migration-test`)
+- [x] Coverage gate (70%) configured & passing
 
-**Frontend**
-- [ ] AuthProvider + API client
-- [ ] Login + Profile pages (basic UX)
-- [ ] ProtectedRoute
-- [ ] MSW test suite
-- [ ] Coverage gate (or rationale for deferral)
+**Frontend** *(separate repo progress – snapshot)*
+- [ ] AuthProvider + API client (cookie path) *(partial / in progress)*
+- [ ] Login + Profile pages *(baseline login UI present; profile edit in progress)*
+- [ ] ProtectedRoute *(pending)*
+- [ ] MSW tests *(initial stubs only)*
+- [ ] Coverage gate *(deferred – rationale documented)*
 
 **Docs**
-- [ ] Update `instructions.md` (env vars: SPRING_DATASOURCE_URL/USERNAME/PASSWORD or DB_URL alias)
-- [ ] Update `docs/api.md` (Week 2 endpoints + example requests/responses)
-- [ ] Update milestone journal & reflection
+- [x] Updated `instructions.md` / README with auth + config + prod profile
+- [x] Updated `docs/api.md` (new endpoints + error codes & registration)
+- [x] Week 2 journal & reflection drafted
+- [x] This plan updated with outcome + deviations
+
+**Additional (not in original checklist)**
+- [x] Application prod profile YAML (`application-prod.yml`)
+- [x] Session alias cookie support
+- [x] Enhanced CORS configuration (list binding + credentials)
+
+---
+## Milestone 2 Deviation Changelog (Summary Lines)
+For reflection / retrospective use:
+- Introduced full BCrypt hashing + explicit registration one week earlier than planned (replaced simple dev stub).
+- Adopted persistent Postgres-backed sessions only (dropped tentative in-memory fallback) to simplify state consistency.
+- Replaced single `UNAUTHORIZED` response with granular auth error taxonomy (`UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`).
+- Removed implicit find-or-create login path; enforced explicit registration (retained dev auto-create flag only for test convenience).
+- Raised coverage requirement from 60% → 70% mid-week to enforce higher quality earlier.
+- Eliminated planned DevAuthFilter in favor of a unified `SessionAuthenticationFilter` + configuration properties model.
+- Added prod profile early (secure cookie, domain, extended TTL) to reduce later environment drift risk.
+- Added type-safe `SameboatProperties` binding to centralize config and eliminate scattered `@Value` usage.
+- Implemented alias cookie name (`sb_session`) for forward compatibility / client naming flexibility.
 
 ---
 
-## Docs — Proposed Content
-
-### `instructions.md` (additions)
-
-- **Env vars (backend):** `SPRING_PROFILES_ACTIVE=dev`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` (or alias `DB_URL`, `DB_USER`, `DB_PASSWORD`).
-- **Starting dev:**
-  - Backend: `./mvnw spring-boot:run`
-  - Frontend: `pnpm dev`
-- **Auth (dev stub):**
-  - Login with any email + password `dev` at `/auth/login`.
-  - App sets `SBSESSION` cookie (HttpOnly); browser sends it automatically.
-  - Use `GET /me` to verify; update profile via `PATCH /me`.
-
-### `docs/api.md` (new/updated)
-
-```
-POST /auth/login
-  req: { email, password }
-  res: { user }
-  200 → Set-Cookie: SBSESSION=...; HttpOnly; SameSite=Lax
-
-POST /auth/logout
-  204; clears cookie
-
-GET /me
-  res: UserDto
-
-PATCH /me
-  req: UpdateUserRequest
-  res: UserDto (updated)
-```
-
-**Examples**
-```http
-POST /auth/login
-Content-Type: application/json
-
-{"email":"dev@sameboat.local","password":"dev"}
-```
-
-```json
-{ "user": { "id":"…","email":"dev@sameboat.local","displayName":"Dev User","role":"USER" } }
-```
-
-### `docs/milestones/milestone-2.md`
-
-#### Journal (daily bullets)
-- **Mon:** Implement Flyway V2 + V3 reconciliation; scaffold entities/repos.
-- **Tue:** AuthController login/logout; session cookie end‑to‑end.
-- **Wed:** `/me` GET/PATCH + profile fields; MockMvc tests.
-- **Thu:** Frontend AuthProvider, Login/Profile pages; MSW tests.
-- **Fri:** CI gates + polish; docs finalized; reflection written.
-
-#### Reflection (draft)
-**What went well**
-- CI stayed green after introducing DB + auth complexity.
-- Testcontainers enabled realistic integration tests with minimal flake.
-- Frontend auth flow (cookie + 401 redirect) feels predictable.
-
-**What was hard / surprises**
-- Session validation filter iterations.
-- MSW cookie handling nuance.
-
-**Key decisions**
-- Opaque server session token for Week 2.
-- Preserve clean abstraction for JWT migration.
-
-**Next week (Week 3 preview)**
-- Password hashing & minimal registration.
-- Token strategy exploration (JWT vs refined sessions).
-- Audit logging for auth events.
+## Definition of Done (Updated)
+- Registration + login + logout + /me (GET/PATCH) fully functional with hashed passwords.
+- Session expiration + error code differentiation validated via tests.
+- Coverage ≥ 70% (gate green).
+- Migration immutability enforced; no historical rewrites.
+- Documentation (README + API + plan) reflects actual implementation.
+- Configurable via environment (sameboat.* properties) with prod overrides.
 
 ---
 
-## End‑of‑Week Update Template (Fill‑In)
-
-- **Deviations from plan:** …
-- **Bugs found/fixed:** …
-- **Coverage numbers:** backend …%, frontend …%
-- **Open risks:** …
-- **Demo notes:** routes to click, test accounts, what to show.
-
----
-
-## Stretch Goals (only if time remains)
-
-- Add `createdAt/updatedAt` auditing via `@EntityListeners`.
-- Basic avatar upload stub (client‑side only) with URL field.
-- Add `/users/{id}` GET (self or admin; enforce self in Week 2).
+## Week 3 Preview / Action Items
+| Item | Goal |
+|------|------|
+| Add password complexity validation | Strengthen credential policy |
+| Session pruning job | Prevent stale row buildup |
+| Evaluate JWT vs extended session model | Decide auth token trajectory |
+| Add rate limiting to login endpoint | Throttle brute force |
+| OpenAPI integration | Sync live endpoints into spec |
+| Frontend test & coverage catch-up | Align with backend quality gates |
 
 ---
-
-## Definition of Done (Week 2)
-
-- Auth stub login/logout works locally & in CI.
-- `/me` GET/PATCH implemented with persistence.
-- Migration immutability respected (no edits to V1–V3).
-- Back + Front CI include coverage gates ≥ 70% (or documented deferral).
-- Docs reflect current endpoints & setup.
-- Milestone 2 journal + reflection drafted and committed.
