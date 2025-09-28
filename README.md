@@ -36,7 +36,70 @@ Pre-commit hook (optional):
 
 CI: The GitHub Actions workflow runs the Bash script before tests; it fails the build if a historical migration was altered.
 
+## CI Pipeline (Current)
+1. Checkout (full history: `fetch-depth: 0`).
+2. Make scripts executable.
+3. Migration immutability check (fails fast if an applied migration file was modified). For PRs uses `GITHUB_BASE_REF`; for pushes auto-detects remote default branch.
+4. Maven `verify` (regular unit + integration tests; migration container test skipped by default).
+5. Migration schema test profile: `mvn -Pwith-migration-test test` runs Testcontainers-based Flyway schema verification.
+
+### Manual CI Parity Commands
+```
+# Regular tests (skip migration schema test)
+mvn verify
+
+# Include migration schema verification
+mvn -Pwith-migration-test test
+
+# Immutability check locally (auto base)
+scripts/check-migration-immutability.sh
+# Against specific base
+scripts/check-migration-immutability.sh origin/main
+```
+
+### Flyway Maven Plugin (Defaults & Overrides)
+Flyway plugin uses fallback properties defined in `pom.xml`:
+- Default URL: `jdbc:postgresql://localhost:5432/sameboat`
+- Default user/password: `postgres / postgres`
+Override at runtime:
+```
+./mvnw -Dflyway.url=jdbc:postgresql://HOST:5432/DB -Dflyway.user=USER -Dflyway.password=PASS flyway:info
+```
+If you prefer using Spring datasource env vars, run the application instead of the plugin (app Flyway auto-migration uses `application.yml` variable layering).
+
 ---
 
 ## 📅 Project Schedule
 See the [Semester Project Plan](./schedule/SemesterPlan.md) for calendar files, screenshots, and live links.
+
+---
+## Authentication & Sessions (Week 2 Slice)
+Opaque session cookie `SBSESSION` (UUID) returned by `POST /auth/login` (dev stub password: `dev`). Include it as a regular Cookie header for authenticated calls (`/me`, `PATCH /me`). Logout invalidates the session.
+
+See full endpoint contract & examples in [API Reference](./docs/api.md).
+
+## Error Envelope
+All non-2xx errors return:
+```json
+{ "error": "<CODE>", "message": "Human readable explanation" }
+```
+Current codes: `UNAUTHORIZED`, `VALIDATION_ERROR`, `BAD_REQUEST`, `INTERNAL_ERROR`.
+
+## Quality Gates
+| Gate | Status | Notes |
+|------|--------|-------|
+| Migration immutability | Enforced in CI | Fails build if applied migration edited |
+| Test suite | Required | `mvn verify` runs unit + integration tests |
+| Coverage threshold | >= 60% instructions | JaCoCo gate (`pom.xml`) – ratchet later |
+| Schema verification (Flyway) | Optional profile | `-Pwith-migration-test` uses Testcontainers |
+
+Raise the coverage bar incrementally (e.g. 60% → 70%) after adding password hashing & additional domain logic.
+
+## Roadmap (Auth Next Steps)
+- Replace stub password with hashed credentials & registration flow
+- Secure / SameSite=None cookies under HTTPS
+- Session rotation & idle timeout
+- Role-based authorization annotations
+- Merge endpoints into OpenAPI `openapi/sameboat.yaml`
+
+---
