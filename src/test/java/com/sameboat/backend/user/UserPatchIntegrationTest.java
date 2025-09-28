@@ -25,10 +25,14 @@ class UserPatchIntegrationTest {
         var res = mvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"dev\"}"))
-                .andExpect(status().isOk())
                 .andReturn();
+        int status = res.getResponse().getStatus();
+        String body = res.getResponse().getContentAsString();
+        if (status != 200) {
+            throw new AssertionError("loginAndGetCookie expected 200 but got " + status + " body=" + body);
+        }
         String setCookie = res.getResponse().getHeader("Set-Cookie");
-        assertThat(setCookie).isNotBlank();
+        assertThat(setCookie).as("Set-Cookie present for login").isNotBlank();
         return setCookie.split(";", 2)[0];
     }
 
