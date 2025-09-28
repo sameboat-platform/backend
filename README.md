@@ -1,4 +1,4 @@
-![Backend CI](https://github.com/sameboat-platform/sameboat-backend/actions/workflows/backend-ci.yml/badge.svg)
+![Backend CI](https://github.com/sameboat-platform/backend/actions/workflows/backend-ci.yml/badge.svg)
 # SameBoat Backend (Spring Boot + Java 21)
 
 > Repository migration: moved from `ArchILLtect/*` to `sameboat-platform/*` on 2025-09-28. Update any local remotes:
