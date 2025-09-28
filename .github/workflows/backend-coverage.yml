@@ -27,6 +27,11 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Ensure wrapper & scripts are executable
+        run: |
+          chmod +x mvnw || true
+          chmod +x scripts/check-migration-immutability.sh || true
+
       - name: Build & Test (with coverage)
         run: |
           ./mvnw -B -ntp clean verify
