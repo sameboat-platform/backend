@@ -2,7 +2,7 @@ Week 1
 9/13/2025
 
 Tasks Completed:
-- Created two repos: [sameboat-frontend](https://github.com/ArchILLtect/sameboat-frontend) and [sameboat-backend](https://github.com/ArchILLtect/sameboat-backend).
+- Created two repos: [sameboat-frontend](https://github.com/sameboat-platform/sameboat-frontend) and [sameboat-backend](https://github.com/sameboat-platform/sameboat-backend).
 - Scaffolded both repos (frontend with Vite + React + TS, backend with Spring Boot 3 + Java 21).
 - Installed core backend dependencies (Spring Web, JPA, Validation, Lombok, Flyway, PostgreSQL Driver, DevTools).
 - Set up Neon PostgreSQL database, created initial `sameboat` DB, and ran Flyway migration V1__init.sql with `users`, `stories`, and `trust_events` tables.
@@ -19,4 +19,4 @@ This week was all about laying down the foundation. It felt amazing to hit that 
 
 Biggest win? Seeing the repos fully structured, DB initialized, CI/CD passing, and docs + calendar all organized. It feels like a *real project* now, not just an idea. Honestly, I’m still riding that high.
 
-Next week’s focus: auth stubs + basic user profiles. Time to move from foundation into actual feature work. WOOHOO! Finally!  
+Next week’s focus: auth stubs + basic user profiles. Time to move from foundation into actual feature work. WOOHOO! Finally!
