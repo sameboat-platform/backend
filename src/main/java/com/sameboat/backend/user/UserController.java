@@ -2,6 +2,7 @@ package com.sameboat.backend.user;
 
 import com.sameboat.backend.auth.AuthPrincipal;
 import com.sameboat.backend.common.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,7 +21,10 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication authentication) {
+    public ResponseEntity<?> me(Authentication authentication, HttpServletRequest request) {
+        if (Boolean.TRUE.equals(request.getAttribute("sameboat.sessionExpired"))) {
+            return ResponseEntity.status(401).body(new ErrorResponse("SESSION_EXPIRED", "Session expired"));
+        }
         if (authentication == null || !(authentication.getPrincipal() instanceof AuthPrincipal ap)) {
             return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHENTICATED", "Authentication required"));
         }
@@ -31,7 +35,10 @@ public class UserController {
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<?> updateMe(Authentication authentication, @RequestBody @Valid UpdateUserRequest request) {
+    public ResponseEntity<?> updateMe(Authentication authentication, @RequestBody @Valid UpdateUserRequest request, HttpServletRequest httpRequest) {
+        if (Boolean.TRUE.equals(httpRequest.getAttribute("sameboat.sessionExpired"))) {
+            return ResponseEntity.status(401).body(new ErrorResponse("SESSION_EXPIRED", "Session expired"));
+        }
         if (authentication == null || !(authentication.getPrincipal() instanceof AuthPrincipal ap)) {
             return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHENTICATED", "Authentication required"));
         }

@@ -35,50 +35,75 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            String token = extractSessionCookie(request);
-            if (token != null) {
-                log.debug("Session cookie detected token={}", token);
-                try {
-                    var uuid = UUID.fromString(token);
-                    var sessionOpt = sessionService.findById(uuid);
-                    if (sessionOpt.isPresent()) {
-                        var session = sessionOpt.get();
-                        if (session.getExpiresAt() != null && session.getExpiresAt().isBefore(java.time.OffsetDateTime.now())) {
-                            log.warn("Expired session token={} userId={}", token, session.getUserId());
-                            request.setAttribute("sameboat.sessionExpired", true);
-                        } else {
-                            var userOpt = userService.findById(session.getUserId());
-                            if (userOpt.isPresent()) {
-                                var user = userOpt.get();
-                                log.info("Authenticated user id={} email={}", user.getId(), user.getEmail());
-                                sessionService.touch(session);
-                                var principal = new AuthPrincipal(user.getId(), user.getEmail(), user.getRole());
-                                var auth = new UsernamePasswordAuthenticationToken(principal, null,
-                                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
-                                SecurityContextHolder.getContext().setAuthentication(auth);
-                            } else {
-                                log.warn("User not found for session userId={} token={}", session.getUserId(), token);
-                            }
-                        }
+        String token = extractSessionCookie(request);
+        if (token != null) {
+            log.debug("Session cookie detected token={}", token);
+            try {
+                var uuid = UUID.fromString(token);
+                var sessionOpt = sessionService.findById(uuid);
+                if (sessionOpt.isPresent()) {
+                    var session = sessionOpt.get();
+                    var expiresAt = session.getExpiresAt();
+                    java.time.OffsetDateTime nowOffset = java.time.OffsetDateTime.now();
+                    java.time.Instant nowInstant = java.time.Instant.now();
+                    java.time.Instant expInstant = expiresAt == null ? null : expiresAt.toInstant();
+                    log.debug("TZDIAG systemDefault={} nowOffset={} nowInstant={} expiresAt={} expInstant={}", java.time.ZoneId.systemDefault(), nowOffset, nowInstant, expiresAt, expInstant);
+                    log.debug("Session lookup success token={} userId={} expiresAt={} nowInstant={}", token, session.getUserId(), expiresAt, nowInstant);
+                    if (expInstant != null && !expInstant.isAfter(nowInstant)) {
+                        log.warn("Expired session token={} userId={} expiresAt={} nowInstant={}", token, session.getUserId(), expiresAt, nowInstant);
+                        request.setAttribute("sameboat.sessionExpired", true);
+                        SecurityContextHolder.clearContext();
                     } else {
-                        log.warn("No session found for token={}", token);
+                        var userOpt = userService.findById(session.getUserId());
+                        if (userOpt.isPresent()) {
+                            var user = userOpt.get();
+                            log.info("Authenticated user id={} email={}", user.getId(), user.getEmail());
+                            sessionService.touch(session);
+                            var principal = new AuthPrincipal(user.getId(), user.getEmail(), user.getRole());
+                            var auth = new UsernamePasswordAuthenticationToken(principal, null,
+                                    List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
+                            SecurityContextHolder.getContext().setAuthentication(auth);
+                        } else {
+                            log.warn("User not found for session userId={} token={}", session.getUserId(), token);
+                            SecurityContextHolder.clearContext();
+                        }
                     }
-                } catch (IllegalArgumentException ex) {
-                    log.warn("Invalid session token format token={}", token);
+                } else {
+                    log.warn("No session found for token={}", token);
+                    SecurityContextHolder.clearContext();
                 }
+            } catch (IllegalArgumentException ex) {
+                log.warn("Invalid session token format token={}", token);
+                SecurityContextHolder.clearContext();
             }
+        } else {
+            log.trace("No session cookie present on path={} method={}", request.getRequestURI(), request.getMethod());
         }
         filterChain.doFilter(request, response);
     }
 
     private String extractSessionCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
-        if (cookies == null) return null;
-        for (Cookie c : cookies) {
-            String name = c.getName();
-            if ("SBSESSION".equals(name) || "sb_session".equalsIgnoreCase(name)) {
-                return c.getValue();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                String name = c.getName();
+                if ("SBSESSION".equals(name) || "sb_session".equalsIgnoreCase(name)) {
+                    return c.getValue();
+                }
+            }
+        }
+        // Always attempt raw header parsing if not already found (handles MockMvc header("Cookie", ...) cases)
+        String raw = request.getHeader("Cookie");
+        if (raw != null) {
+            String[] parts = raw.split(";\\s*");
+            for (String part : parts) {
+                int eq = part.indexOf('=');
+                if (eq > 0) {
+                    String name = part.substring(0, eq).trim();
+                    if ("SBSESSION".equalsIgnoreCase(name) || "sb_session".equalsIgnoreCase(name)) {
+                        return part.substring(eq + 1).trim();
+                    }
+                }
             }
         }
         return null;
