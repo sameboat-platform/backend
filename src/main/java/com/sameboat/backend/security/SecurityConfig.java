@@ -16,6 +16,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class SecurityConfig {
@@ -30,7 +32,7 @@ public class SecurityConfig {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
             boolean expired = Boolean.TRUE.equals(request.getAttribute("sameboat.sessionExpired"));
-            String code = expired ? "SESSION_EXPIRED" : "UNAUTHORIZED";
+            String code = expired ? "SESSION_EXPIRED" : "UNAUTHENTICATED";
             String message = expired ? "Session expired" : "Authentication required";
             ErrorResponse body = new ErrorResponse(code, message);
             try (var out = response.getOutputStream()) {
@@ -50,13 +52,16 @@ public class SecurityConfig {
     }
 
     @Bean
+    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(@NonNull HttpSecurity http,
                                                    @NonNull SessionAuthenticationFilter sessionAuthenticationFilter,
                                                    @NonNull AuthenticationEntryPoint jsonAuthEntryPoint) throws Exception {
         http
                 .csrf(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/health", "/auth/login").permitAll()
+                        .requestMatchers("/actuator/health", "/health", "/auth/login", "/auth/register", "/api/auth/login", "/api/auth/register").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(jsonAuthEntryPoint)

@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,16 +18,18 @@ class UserServiceTest {
     @Autowired
     UserService userService;
 
+    private final PasswordEncoder encoder = new BCryptPasswordEncoder();
+
     @Test
-    void findOrCreateCreates() {
-        var u = userService.findOrCreateByEmail("new@example.com");
+    void registerNewCreates() {
+        var u = userService.registerNew("new@example.com", "StrongPass1!", encoder);
         assertThat(u.getId()).isNotNull();
         assertThat(userRepository.findByEmailIgnoreCase("new@example.com")).isPresent();
     }
 
     @Test
     void updatePartialAppliesOnlyProvided() {
-        var u = userService.findOrCreateByEmail("upd@example.com");
+        var u = userService.registerNew("upd@example.com", "StrongPass2!", encoder);
         var originalDisplay = u.getDisplayName();
         UpdateUserRequest req = new UpdateUserRequest(null, "http://a", null, null);
         var updated = userService.updatePartial(u, req);
@@ -33,4 +37,3 @@ class UserServiceTest {
         assertThat(updated.getDisplayName()).isEqualTo(originalDisplay); // unchanged
     }
 }
-

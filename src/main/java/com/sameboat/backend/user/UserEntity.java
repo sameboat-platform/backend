@@ -61,8 +61,9 @@ public class UserEntity {
         if (displayName == null || displayName.isBlank()) {
             displayName = email; // default display name to email
         }
+        // passwordHash must be provided by service (BCrypt); no stub fallback
         if (passwordHash == null) {
-            passwordHash = "DEV-STUB"; // placeholder until real hashing (Week 3)
+            throw new IllegalStateException("passwordHash must be set before persisting user");
         }
     }
 

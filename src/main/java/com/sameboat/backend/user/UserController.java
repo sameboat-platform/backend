@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
+@RequestMapping({"","/api"})
 public class UserController {
 
     private final UserService userService;
@@ -21,18 +22,18 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication) {
         if (authentication == null || !(authentication.getPrincipal() instanceof AuthPrincipal ap)) {
-            return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHORIZED", "Authentication required"));
+            return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHENTICATED", "Authentication required"));
         }
         return userService.findById(ap.userId())
                 .map(UserMapper::toDto)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(401).body(new ErrorResponse("UNAUTHORIZED", "Authentication required")));
+                .orElseGet(() -> ResponseEntity.status(401).body(new ErrorResponse("UNAUTHENTICATED", "Authentication required")));
     }
 
     @PatchMapping("/me")
     public ResponseEntity<?> updateMe(Authentication authentication, @RequestBody @Valid UpdateUserRequest request) {
         if (authentication == null || !(authentication.getPrincipal() instanceof AuthPrincipal ap)) {
-            return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHORIZED", "Authentication required"));
+            return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHENTICATED", "Authentication required"));
         }
         if (request.displayName() == null && request.avatarUrl() == null && request.bio() == null && request.timezone() == null) {
             return ResponseEntity.status(400).body(new ErrorResponse("VALIDATION_ERROR", "At least one field must be provided"));
@@ -40,7 +41,7 @@ public class UserController {
         UUID uid = ap.userId();
         var user = userService.findById(uid).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHORIZED", "Authentication required"));
+            return ResponseEntity.status(401).body(new ErrorResponse("UNAUTHENTICATED", "Authentication required"));
         }
         var updated = userService.updatePartial(user, request);
         return ResponseEntity.ok(UserMapper.toDto(updated));

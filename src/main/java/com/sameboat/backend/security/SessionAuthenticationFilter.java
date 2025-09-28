@@ -76,7 +76,8 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) return null;
         for (Cookie c : cookies) {
-            if ("SBSESSION".equals(c.getName())) {
+            String name = c.getName();
+            if ("SBSESSION".equals(name) || "sb_session".equalsIgnoreCase(name)) {
                 return c.getValue();
             }
         }

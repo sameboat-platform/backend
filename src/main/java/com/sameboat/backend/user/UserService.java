@@ -1,9 +1,12 @@
 package com.sameboat.backend.user;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -14,17 +17,35 @@ public class UserService {
         this.repository = repository;
     }
 
-    public UserEntity findOrCreateByEmail(String email) {
-        return repository.findByEmailIgnoreCase(email).orElseGet(() -> {
-            UserEntity e = new UserEntity();
-            e.setEmail(email);
-            e.setDisplayName(email);
-            e.setPasswordHash("DEV-STUB");
-            return repository.save(e);
-        });
+    // BEGIN secure registration / lookup additions
+    public Optional<UserEntity> getByEmailNormalized(String rawEmail) {
+        return repository.findByEmailIgnoreCase(normalizeEmail(rawEmail));
     }
 
+    public UserEntity registerNew(String rawEmail, String rawPassword, PasswordEncoder encoder) {
+        String email = normalizeEmail(rawEmail);
+        repository.findByEmailIgnoreCase(email).ifPresent(u -> { throw new IllegalArgumentException("Email already registered"); });
+        UserEntity e = new UserEntity();
+        e.setEmail(email);
+        e.setDisplayName(email);
+        e.setPasswordHash(encoder.encode(rawPassword));
+        return repository.save(e);
+    }
+    // END secure registration / lookup additions
+
     public Optional<UserEntity> findById(java.util.UUID id) { return repository.findById(id); }
+
+    public Optional<UserEntity> findByEmail(String email) {
+        return repository.findByEmailIgnoreCase(email);
+    }
+
+    public boolean passwordMatches(UserEntity user, String rawPassword, PasswordEncoder encoder) {
+        return encoder.matches(rawPassword, user.getPasswordHash());
+    }
+
+    public String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
 
     public UserEntity updatePartial(UserEntity existing, UpdateUserRequest req) {
         if (req.displayName() != null) existing.setDisplayName(req.displayName());
@@ -34,4 +55,3 @@ public class UserService {
         return repository.save(existing);
     }
 }
-
