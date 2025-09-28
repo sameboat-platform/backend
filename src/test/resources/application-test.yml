@@ -15,3 +15,14 @@ logging:
   level:
     org.springframework.security: WARN
     com.sameboat.backend.security: DEBUG
+sameboat:
+  auth:
+    dev-auto-create: true
+    stub-password: dev
+  cookie:
+    secure: false
+    domain: ""
+  session:
+    ttl-days: 7
+  cors:
+    allowed-origins: "http://localhost:5173"

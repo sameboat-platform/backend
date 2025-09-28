@@ -1,0 +1,16 @@
+# Production profile overrides
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+sameboat:
+  cors:
+    allowed-origins:
+      - https://app.sameboat.<tld>
+      - https://preview.sameboat.<tld>
+  cookie:
+    secure: true
+    domain: .sameboat.<tld>
+  session:
+    ttl-days: 14

@@ -23,3 +23,17 @@ management:
 
 server:
   port: 8080
+
+sameboat:
+  auth:
+    dev-auto-create: false
+    stub-password: dev
+  cookie:
+    secure: false
+    domain: ""
+  session:
+    ttl-days: 7
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:5174
