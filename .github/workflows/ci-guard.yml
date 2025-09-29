@@ -1,0 +1,25 @@
+# This GitHub Actions workflow prevents changes to backend-ci.yml
+# unless the pull request has the label 'ci-change-ok'.
+name: CI Guard
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  block-backend-ci-edits:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(toJson(github.event.pull_request.labels.*.name), 'ci-change-ok') }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Fail if backend-ci.yml changed
+        run: |
+          set -e
+          base="${{ github.base_ref }}"
+          head="${{ github.head_ref }}"
+          if git diff --name-only "origin/$base...origin/$head" | grep -q '^\.github/workflows/backend-ci\.yml$'; then
+            echo "❌ Changes to backend-ci.yml are not allowed without label 'ci-change-ok'."
+            exit 1
+          fi
+      - name: Ensure backend-ci.yml exists
+        run: test -f .github/workflows/backend-ci.yml || (echo "❌ Missing backend-ci.yml" && exit 1)
