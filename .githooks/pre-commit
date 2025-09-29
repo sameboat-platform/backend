@@ -5,7 +5,14 @@
 
 set -euo pipefail
 
-# --- 1) Protect critical CI workflow (backend-ci.yml) ------------------------
+# --- 1) Warn loudly if CI override env var is set ------------------------------
+if [[ "${ALLOW_CI_EDIT:-}" == "1" ]]; then
+  echo "⚠️  WARNING: ALLOW_CI_EDIT is set!"
+  echo "   This will allow changes to .github/workflows/backend-ci.yml."
+  echo "   Make sure this is intentional."
+fi
+
+# --- 2) Protect critical CI workflow (backend-ci.yml) ------------------------
 # Block committing changes to backend-ci.yml unless override env is set
 if git diff --cached --name-only | grep -q '^\.github/workflows/backend-ci\.yml$'; then
   if [[ "${ALLOW_CI_EDIT:-}" != "1" ]]; then
@@ -16,7 +23,7 @@ if git diff --cached --name-only | grep -q '^\.github/workflows/backend-ci\.yml$
   fi
 fi
 
-# --- 2) Migration immutability enforcement -----------------------------------
+# --- 3) Migration immutability enforcement -----------------------------------
 # Your existing check (must exit non-zero on violation)
 if [[ -x scripts/check-migration-immutability.sh ]]; then
   scripts/check-migration-immutability.sh
