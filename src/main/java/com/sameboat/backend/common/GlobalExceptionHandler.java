@@ -17,6 +17,11 @@ import jakarta.validation.ConstraintViolationException;
 
 import java.util.stream.Collectors;
 
+/**
+ * Centralized translation of exceptions into structured {@link ErrorResponse}
+ * JSON bodies. Provides consistent error codes for validation, bad request, and
+ * generic server failures while logging unexpected exceptions with a trace id.
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -39,6 +44,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(new ErrorResponse("VALIDATION_ERROR", msg));
     }
 
+    /** Maps bean validation (method param) violations to a 400 response. */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
         String msg = ex.getConstraintViolations().stream().findFirst()
@@ -47,11 +53,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", msg);
     }
 
+    /** Returns a BAD_REQUEST code for IllegalArgumentException thrown by services. */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage());
     }
 
+    /** Fallback handler producing an INTERNAL_ERROR with a random reference id. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
         String id = java.util.UUID.randomUUID().toString();

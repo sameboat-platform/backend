@@ -22,6 +22,11 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.Map;
 
+/**
+ * REST controller providing authentication endpoints: register, login and logout.
+ * On successful login/registration a session cookie (SBSESSION) is issued. Logout
+ * invalidates the persisted session and expires the cookie client-side.
+ */
 @RestController
 @RequestMapping({"/auth", "/api/auth"})
 public class AuthController {
@@ -40,6 +45,7 @@ public class AuthController {
         this.props = props;
     }
 
+    /** Builds a configured session cookie with security attributes. */
     private Cookie buildSessionCookie(String token) {
         var sessionCfg = props.getSession();
         var cookieCfg = props.getCookie();
@@ -53,12 +59,17 @@ public class AuthController {
         return cookie;
     }
 
+    /** Convenience builder for a uniform bad credentials response with logging. */
     private ResponseEntity<ErrorResponse> badCredentials(String email) {
         log.info("Login failed email={} (bad credentials)", email);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse("BAD_CREDENTIALS", "Email or password is incorrect"));
     }
 
+    /**
+     * Registers a new user account (unless email already exists) and immediately
+     * creates a session, returning the new user id plus issuing the cookie.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request, HttpServletResponse response) {
         String emailNorm = userService.normalizeEmail(request.email());
@@ -76,6 +87,10 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("userId", user.getId().toString()));
     }
 
+    /**
+     * Authenticates a user by email + password, optionally auto-creating a dev
+     * user if configured. Issues a fresh session cookie on success.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid com.sameboat.backend.auth.dto.LoginRequest request, HttpServletResponse response) {
         String emailNorm = userService.normalizeEmail(request.email());
@@ -101,6 +116,9 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(com.sameboat.backend.user.UserMapper.toDto(user)));
     }
 
+    /**
+     * Logs out the current session (if present) and expires the cookie.
+     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(value = "SBSESSION", required = false) String token, HttpServletResponse response) {
         if (token != null) {

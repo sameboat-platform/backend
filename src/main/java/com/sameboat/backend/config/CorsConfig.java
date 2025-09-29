@@ -9,6 +9,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Registers a permissive CORS configuration constrained to the allowed origins
+ * declared in {@link SameboatProperties.Cors}. Credentials are enabled so the
+ * session cookie can be transmitted by browsers.
+ */
 @Configuration
 public class CorsConfig {
 
