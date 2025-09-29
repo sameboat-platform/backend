@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
-# Pre-commit hook: migration immutability enforcement.
-# Enable with: git config core.hooksPath .githooks
+# Pre-commit hook
+# Enable shared hooks: git config --local core.hooksPath .githooks
 # Ensure executable: chmod +x .githooks/pre-commit scripts/check-migration-immutability.sh
 
-scripts/check-migration-immutability.sh || exit 1
+set -euo pipefail
+
+# --- 1) Protect critical CI workflow (backend-ci.yml) ------------------------
+# Block committing changes to backend-ci.yml unless override env is set
+if git diff --cached --name-only | grep -q '^\.github/workflows/backend-ci\.yml$'; then
+  if [[ "${ALLOW_CI_EDIT:-}" != "1" ]]; then
+    echo "❌ backend-ci.yml is protected."
+    echo "   If this change is intentional, re-run with:"
+    echo "   ALLOW_CI_EDIT=1 git commit -m \"ci: intentional backend-ci change\""
+    exit 1
+  fi
+fi
+
+# --- 2) Migration immutability enforcement -----------------------------------
+# Your existing check (must exit non-zero on violation)
+if [[ -x scripts/check-migration-immutability.sh ]]; then
+  scripts/check-migration-immutability.sh
+else
+  echo "⚠️  Warning: scripts/check-migration-immutability.sh not found or not executable; skipping."
+fi
+
+# If you reach here, the commit can proceed
+exit 0
