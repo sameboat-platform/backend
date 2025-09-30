@@ -7,10 +7,10 @@ spring:
 sameboat:
   cors:
     allowed-origins:
-      - https://app.sameboat.<tld>
-      - https://preview.sameboat.<tld>
+      - https://sameboatplatform.org
+      - https://app-sameboat.netlify.app/
   cookie:
     secure: true
-    domain: .sameboat.<tld>
+    domain: .sameboatplatform.org
   session:
     ttl-days: 14

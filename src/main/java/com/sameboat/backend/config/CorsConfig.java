@@ -1,12 +1,12 @@
 package com.sameboat.backend.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -30,8 +30,9 @@ public class CorsConfig {
         }
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
-        cfg.setAllowCredentials(true); // we now send session cookie
+        cfg.setAllowCredentials(true); // allow cookie / credentialed requests
         cfg.setExposedHeaders(List.of("Set-Cookie"));
+        cfg.setMaxAge(Duration.ofHours(1));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;

@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.AuthenticationException;
@@ -62,8 +63,10 @@ public class SecurityConfig {
                                                    @NonNull SessionAuthenticationFilter sessionAuthenticationFilter,
                                                    @NonNull AuthenticationEntryPoint jsonAuthEntryPoint) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/health", "/health", "/auth/login", "/auth/register", "/api/auth/login", "/api/auth/register").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e
