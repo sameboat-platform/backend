@@ -402,3 +402,41 @@ mvc.perform(get("/users/{id}", 999L))
 When prompting Copilot for new exceptions include: "Add ResourceNotFoundException (NOT_FOUND, 404) and update GlobalExceptionHandler accordingly; extend error code catalog." 
 
 ---
+## 22. Deployment & Hosting Snapshot (Reference for Prompts)
+Use this section when generating code that touches configuration, CORS, cookies, or environment-dependent behavior.
+
+| Component | Provider / Location | Domain / Identifier | Key Settings |
+|-----------|---------------------|---------------------|--------------|
+| Backend API | Render Web Service | https://api.sameboatplatform.org | Spring profile `prod`, health `/health` |
+| Frontend SPA | Netlify | https://app.sameboatplatform.org | Consumes API via `api.` subdomain |
+| Root Domains | DNS (Registrar) | sameboatplatform.org / .com | `.com` → `.org` 301 redirect |
+| Database | Neon Postgres (Managed) | (Neon project) | JDBC `sslmode=require` (TLS) |
+| Auth Session Cookie | Browser (`SBSESSION`) | Domain `.sameboatplatform.org` | `Secure`, `HttpOnly`, `SameSite=Lax` (review for Strict) |
+| CORS Allowlist | Spring Config | https://app.sameboatplatform.org | Credentials enabled (cookies) |
+
+### Production Environment Variables (Typical)
+```
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATASOURCE_URL=jdbc:postgresql://<neon-host>/<db>?sslmode=require
+SPRING_DATASOURCE_USERNAME=<user>
+SPRING_DATASOURCE_PASSWORD=<password>
+SAMEBOAT_COOKIE_DOMAIN=.sameboatplatform.org
+SAMEBOAT_COOKIE_SECURE=true
+SAMEBOAT_CORS_ALLOWED_ORIGINS=https://app.sameboatplatform.org
+```
+
+### Prompt Hints
+When generating:
+- CORS config changes → ensure only `https://app.sameboatplatform.org` added (no wildcard).
+- Cookie settings → set domain & Secure flag only in `prod` profile logic (property-driven).
+- Database config → do not hardcode credentials; rely on environment variables.
+- Links in emails or API docs → use `https://api.sameboatplatform.org`.
+
+### Future (Do NOT Implement Automatically)
+- Staging: `staging-api.sameboatplatform.org` + Neon branch database.
+- Rate limiting / WAF at edge for auth endpoints.
+- Observability: structured logs & metrics export endpoint.
+
+If a prompt involves deployment YAML or CI modifications, apply BACKEND_CI_GUARD first to avoid duplicate workflows.
+
+---

@@ -34,12 +34,66 @@ Alias Tokens (for AI prompts): `BACKEND_CI_GUARD`, `LAYER_RULE`, `SECURITY_BASEL
    ```
 4. Health check: `GET /health` → 200 OK
 
+### Container (Docker) Usage
+A multi-stage Dockerfile is provided for local testing and Render deployment.
+
+Build image (local):
+```bash
+docker build -t sameboat-backend .
+```
+Run locally (expose port 8080):
+```bash
+docker run --rm -e PORT=8080 -p 8080:8080 sameboat-backend
+```
+Override datasource via env vars (example Neon):
+```bash
+docker run --rm \
+  -e PORT=8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://<neon-host>/<db>?sslmode=require \
+  -e SPRING_DATASOURCE_USERNAME=<user> \
+  -e SPRING_DATASOURCE_PASSWORD=<password> \
+  -e SAMEBOAT_COOKIE_DOMAIN=.sameboatplatform.org \
+  -e SAMEBOAT_COOKIE_SECURE=true \
+  -e SAMEBOAT_CORS_ALLOWED_ORIGINS=https://app.sameboatplatform.org \
+  -p 8080:8080 sameboat-backend
+```
+The container entrypoint honors Render's provided `$PORT` environment variable; locally you must supply `-e PORT=<port>` (default not hardcoded). JVM memory tuned via `JAVA_OPTS=-XX:MaxRAMPercentage=75.0` (adjust if needed for constrained instances).
+
+For slimmer production images you can optionally rebuild using a distroless or alpine JRE base; keep current Eclipse Temurin JRE for consistency unless a size optimization is required.
+
 ### Profiles
 - `default` (local dev): insecure cookie (no `Secure` attribute), domain unset, session TTL 7 days.
-- `prod`: `Secure` cookie, domain `.sameboat.<tld>`, session TTL 14 days, different allowed CORS origins.
+- `prod`: `Secure` cookie, domain `.sameboatplatform.org`, session TTL 14 days, CORS allowlist includes `https://app.sameboatplatform.org`.
   ```bash
   ./mvnw spring-boot:run -Dspring.profiles.active=prod
   ```
+
+### Deployment & Hosting (MVP Plan)
+| Component | Provider | Domain / Endpoint | Notes |
+|-----------|----------|-------------------|-------|
+| Backend API | Render (Web Service) | https://api.sameboatplatform.org | Deployed from `main` (container or buildpack). Scale later. |
+| Frontend App | Netlify (React/Vite) | https://app.sameboatplatform.org | Consumes API at `api.` subdomain. |
+| Root Domains | DNS (Registrar) | sameboatplatform.org / .com | `.com` 301 → `.org`. Wildcard / APEX redirect as needed. |
+| Database | Neon Postgres | Managed cluster (TLS) | Use `sslmode=require` in JDBC. |
+| Auth Cookie | Browser (SBSESSION) | Domain: `.sameboatplatform.org` | `Secure`, `HttpOnly`, `SameSite=Lax/Strict` (verify config). |
+| CORS Policy | Spring Config | Allow Origin: `https://app.sameboatplatform.org` | Credentials (cookies) enabled. |
+
+Environment variable examples (Render) for Neon (replace placeholders):
+```
+SPRING_DATASOURCE_URL=jdbc:postgresql://<neon-host>/<db>?sslmode=require
+SPRING_DATASOURCE_USERNAME=<user>
+SPRING_DATASOURCE_PASSWORD=<password>
+SPRING_PROFILES_ACTIVE=prod
+SAMEBOAT_COOKIE_SECURE=true
+SAMEBOAT_COOKIE_DOMAIN=.sameboatplatform.org
+SAMEBOAT_CORS_ALLOWED_ORIGINS=https://app.sameboatplatform.org
+```
+
+Base API URL (prod): `https://api.sameboatplatform.org`
+Frontend Origin: `https://app.sameboatplatform.org`
+
+If you add a new externally accessible endpoint, update `openapi/sameboat.yaml` and, if needed, note any new CORS origins (keep the list minimal).
 
 ## Configuration Properties
 Type‑safe properties (see `SameboatProperties`) under prefix `sameboat.*`:
@@ -49,9 +103,9 @@ Type‑safe properties (see `SameboatProperties`) under prefix `sameboat.*`:
 | sameboat.auth.dev-auto-create | boolean | false | (same) | Auto-create user on first login if password matches stub (dev convenience) |
 | sameboat.auth.stub-password | string | dev | (same) | Stub password used for auto-create path (removed in real prod) |
 | sameboat.cookie.secure | boolean | false | true | Sets `Secure` attribute on session cookie |
-| sameboat.cookie.domain | string | (blank) | .sameboat.<tld> | Cookie domain (blank = omit attribute) |
+| sameboat.cookie.domain | string | (blank) | .sameboatplatform.org | Cookie domain (blank = omit attribute) |
 | sameboat.session.ttl-days | int | 7 | 14 | Session lifespan (days) |
-| sameboat.cors.allowed-origins | list | http://localhost:5173,5174 | app+preview origins | Allowed browser origins (CORS) |
+| sameboat.cors.allowed-origins | list | http://localhost:5173,5174 | https://app.sameboatplatform.org | Allowed browser origins (CORS) |
 
 Override at runtime via environment variables (Spring relaxed binding). Examples:
 ```bash
@@ -225,4 +279,4 @@ Meaning:
 These tokens map directly to detailed guidance in `.github/copilot-instructions.md`. Keeping them explicit reduces accidental violations when IntelliJ indexing is incomplete.
 
 ---
-<!-- End README enhancements: contributing link, coverage badge, alias tokens note, error catalog reference -->
+<!-- End README enhancements: contributing link, coverage badge, alias tokens note, error catalog reference, deployment & hosting section -->

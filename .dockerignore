@@ -1,0 +1,30 @@
+# Build artifacts
+target/
+
+# VCS
+.git
+.gitignore
+.githooks/
+.github/
+
+# IDE / tooling
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+.tmp/
+
+# Node / frontend caches (if any submodules later)
+node_modules/
+
+# Misc
+.env
+

@@ -74,7 +74,20 @@ Add new domain exceptions + codes only with accompanying tests and update the ca
 - Open `copilot-instructions.md` so context is available.
 - Reject suggestions that violate layering, security, or CI guard.
 
-## 12. Getting Help
+## 12. Deployment & Hosting Reference
+Current MVP infrastructure:
+- Backend: Render Web Service → `https://api.sameboatplatform.org`
+- Frontend: Netlify SPA → `https://app.sameboatplatform.org`
+- Database: Neon Postgres (TLS `sslmode=require`)
+- Cookie domain: `.sameboatplatform.org` (prod only, `Secure`, `HttpOnly`)
+- CORS allowlist: `https://app.sameboatplatform.org`
+For environment variables and future staging notes see:
+- README: Deployment & Hosting section
+- `.github/copilot-instructions.md` Section 22
+
+If you add features needing new origins, domains, or headers: update those docs and keep the allowlist tight.
+
+## 13. Getting Help
 Open a draft PR early if change is sizable. Use discussions or issues for architectural questions. When in doubt, favor smaller, incremental PRs.
 
 Thanks for contributing! 🚢
