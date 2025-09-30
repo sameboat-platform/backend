@@ -3,11 +3,18 @@ spring:
   config:
     activate:
       on-profile: prod
-
+management:
+  endpoints:
+    web:
+      base-path: /api/actuator
+      exposure:
+        include: health,info
 sameboat:
   cors:
     allowed-origins:
       - https://sameboatplatform.org
+      - https://www.sameboatplatform.org
+      - https://app.sameboatplatform.org
       - https://app-sameboat.netlify.app
   cookie:
     secure: true
