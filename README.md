@@ -1,6 +1,5 @@
 ![Backend CI](https://github.com/sameboat-platform/backend/actions/workflows/backend-ci.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-JaCoCo%20≥70%25-brightgreen)
-[![Contributing](https://img.shields.io/badge/guide-CONTRIBUTING.md-blue)](./CONTRIBUTING.md) [![Guard Rails](https://img.shields.io/badge/AI%20Guard%20Rails-copilot--instructions.md-purple)](.github/copilot-instructions.md)
+
 # SameBoat Backend (Spring Boot + Java 21)
 
 > Repository migration: moved from `ArchILLtect/*` to `sameboat-platform/*` on 2025-09-28. Update any local remotes:

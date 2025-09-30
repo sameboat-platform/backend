@@ -30,10 +30,16 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
+      - name: Show initial permissions (diagnostic)
+        run: |
+          ls -al . | grep mvnw || true
+          file mvnw || true
+
       - name: Make scripts executable
         run: |
           chmod +x mvnw
           chmod +x scripts/check-migration-immutability.sh
+          ls -al . | grep mvnw || true
 
       - name: Migration immutability check
         shell: bash
@@ -50,9 +56,9 @@ jobs:
           fi
 
       - name: Build & unit/integration tests (skip migration container test)
-        run: ./mvnw -B -ntp verify
+        run: bash mvnw -B -ntp verify
 
       - name: Run migration schema test profile
-        run: ./mvnw -B -ntp -Pwith-migration-test test
+        run: bash mvnw -B -ntp -Pwith-migration-test test
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'false'
