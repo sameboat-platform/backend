@@ -10,8 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.Cookie;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,23 +27,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class ExpiredSessionIntegrationTest {
 
-    @Autowired
-    MockMvc mvc;
-    @Autowired
-    SessionRepository sessionRepository;
+    @Autowired MockMvc mvc;
+    @Autowired SessionRepository sessionRepository;
+    @Autowired PlatformTransactionManager txManager;
+    @Autowired EntityManager entityManager;
 
     private String obtainSessionCookie() throws Exception {
-        final String email = "expire@test.com"; // single test account
+        final String email = "expire@test.com";
         var res = mvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"dev\"}"))
                 .andExpect(status().isOk())
                 .andReturn();
         String setCookie = res.getResponse().getHeader("Set-Cookie");
-        assertThat(setCookie).as("Expect Set-Cookie header with SBSESSION").isNotNull();
+        assertThat(setCookie).isNotNull();
         assertThat(setCookie).contains("SBSESSION=");
         int semi = setCookie.indexOf(';');
         return semi >= 0 ? setCookie.substring(0, semi) : setCookie;
+    }
+
+    private void expireSessionNow(UUID sessionId, long minutesAgo) {
+        new TransactionTemplate(txManager).executeWithoutResult(status -> {
+            SessionEntity s = sessionRepository.findById(sessionId).orElseThrow();
+            var farPastUtc = java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusDays(30);
+            s.setExpiresAt(farPastUtc);
+            sessionRepository.save(s);
+            entityManager.flush();
+            entityManager.clear();
+        });
     }
 
     @Test
@@ -48,11 +63,11 @@ class ExpiredSessionIntegrationTest {
         String cookieHeader = obtainSessionCookie();
         String token = cookieHeader.substring(cookieHeader.indexOf('=') + 1);
         UUID sessionId = UUID.fromString(token);
-        SessionEntity session = sessionRepository.findById(sessionId).orElseThrow();
-        session.setExpiresAt(OffsetDateTime.now().minusMinutes(5));
-        sessionRepository.save(session);
-
-        mvc.perform(get("/me").header("Cookie", cookieHeader))
+        expireSessionNow(sessionId, 5);
+        var s = sessionRepository.findById(sessionId).orElseThrow();
+        System.out.println("TEST DIAG expiredSessionUnauthorized expiresAt=" + s.getExpiresAt() + " now=" + Instant.now());
+        assertThat(s.getExpiresAt().toInstant()).isBefore(Instant.now());
+        mvc.perform(get("/me").cookie(new Cookie("SBSESSION", token)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("SESSION_EXPIRED"));
     }
@@ -63,10 +78,11 @@ class ExpiredSessionIntegrationTest {
         String cookieHeader = obtainSessionCookie();
         String token = cookieHeader.substring(cookieHeader.indexOf('=') + 1);
         UUID sessionId = UUID.fromString(token);
-        SessionEntity session = sessionRepository.findById(sessionId).orElseThrow();
-        session.setExpiresAt(OffsetDateTime.now().minusMinutes(10));
-        sessionRepository.save(session);
-        mvc.perform(get("/me").header("Cookie", "sb_session=" + token))
+        expireSessionNow(sessionId, 10);
+        var s = sessionRepository.findById(sessionId).orElseThrow();
+        System.out.println("TEST DIAG expiredSessionAliasCookie expiresAt=" + s.getExpiresAt() + " now=" + Instant.now());
+        assertThat(s.getExpiresAt().toInstant()).isBefore(Instant.now());
+        mvc.perform(get("/me").cookie(new Cookie("sb_session", token)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("SESSION_EXPIRED"));
     }

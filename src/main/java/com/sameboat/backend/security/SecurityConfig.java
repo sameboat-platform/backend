@@ -1,9 +1,10 @@
 package com.sameboat.backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sameboat.backend.auth.session.SessionService;
 import com.sameboat.backend.common.ErrorResponse;
+import com.sameboat.backend.auth.session.SessionService;
 import com.sameboat.backend.user.UserService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -16,13 +17,15 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Configuration
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class SecurityConfig {
 
     private static final class JsonAuthEntryPoint implements AuthenticationEntryPoint {
+        private static final Logger log = LoggerFactory.getLogger(JsonAuthEntryPoint.class);
         private final ObjectMapper objectMapper;
         private JsonAuthEntryPoint(ObjectMapper objectMapper) { this.objectMapper = objectMapper; }
         @Override
@@ -32,6 +35,9 @@ public class SecurityConfig {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
             boolean expired = Boolean.TRUE.equals(request.getAttribute("sameboat.sessionExpired"));
+            if (expired) {
+                log.debug("AuthEntryPoint: using SESSION_EXPIRED (attribute present)");
+            }
             String code = expired ? "SESSION_EXPIRED" : "UNAUTHENTICATED";
             String message = expired ? "Session expired" : "Authentication required";
             ErrorResponse body = new ErrorResponse(code, message);
@@ -50,9 +56,6 @@ public class SecurityConfig {
     public SessionAuthenticationFilter sessionAuthenticationFilter(SessionService sessionService, UserService userService) {
         return new SessionAuthenticationFilter(sessionService, userService);
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
     public SecurityFilterChain securityFilterChain(@NonNull HttpSecurity http,
