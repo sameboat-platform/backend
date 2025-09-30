@@ -1,4 +1,5 @@
 ![Backend CI](https://github.com/sameboat-platform/backend/actions/workflows/backend-ci.yml/badge.svg)
+
 # SameBoat Backend (Spring Boot + Java 21)
 
 > Repository migration: moved from `ArchILLtect/*` to `sameboat-platform/*` on 2025-09-28. Update any local remotes:
@@ -6,7 +7,22 @@
 > git remote set-url origin git@github.com:sameboat-platform/sameboat-backend.git
 > ```
 
-> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Week 3 Plan](./docs/Weekly%20Plan%20Docs/week_3_plan_same_boat_honors_project_fall_2025.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
+> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Week 3 Plan](./docs/weekly-plan/week-3-plan.md) | [Contributing](./CONTRIBUTING.md) | Guard Rails: [Copilot Instructions](.github/copilot-instructions.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
+
+## Getting Started (Contributors)
+Before writing code or using AI assistance:
+1. Open `CONTRIBUTING.md` AND `.github/copilot-instructions.md` in your IDE (keep both tabs open so Copilot can ingest context).
+2. For every Copilot / AI prompt, prepend:
+   ```
+   Apply BACKEND_CI_GUARD + LAYER_RULE + SECURITY_BASELINE.
+   ```
+3. If Copilot cannot “see” `.github/workflows/backend-ci.yml` it MUST reply exactly:
+   `backend-ci.yml is missing. Please confirm before I generate any new CI workflow.` – fix indexing before proceeding.
+4. Never add another workflow file while `backend-ci.yml` exists.
+5. Add tests (unit + integration) for all new service methods or endpoints.
+6. Create new Flyway migrations—never edit historical ones.
+
+Alias Tokens (for AI prompts): `BACKEND_CI_GUARD`, `LAYER_RULE`, `SECURITY_BASELINE` – always prepend them in complex generation tasks.
 
 ## Run locally
 1. Copy `.env.example` → `.env` and fill appropriate JDBC DS values (or rely on defaults in `application.yml`).
@@ -61,9 +77,9 @@ Scripts (cross‑platform) enforce the "no edits to applied migrations" rule:
 | `scripts/check-migration-immutability.ps1` | PowerShell | `pwsh scripts/check-migration-immutability.ps1 -BaseRef origin/main` |
 | `scripts/check-migration-immutability.cmd` | Windows (cmd shim) | `scripts\check-migration-immutability.cmd` |
 
-Pre-commit hook (optional):
-1. Run: `git config core.hooksPath .githooks`
-2. The provided `.githooks/pre-commit` executes the check; commit aborts if an existing migration is modified.
+### Enable shared Git hooks (once per clone)
+- macOS/Linux: `./scripts/enable-git-hooks.sh`
+- Windows (PowerShell): `pwsh scripts/enable-git-hooks.ps1`
 
 CI: The GitHub Actions workflow runs the Bash script before tests; it fails the build if a historical migration was altered.
 
@@ -183,3 +199,29 @@ curl -i -X POST http://localhost:8080/auth/logout -H 'Cookie: SBSESSION=<uuid>'
 
 ---
 For broader architecture overview see `docs/Architecture.md`.
+
+---
+## Error Code Catalog Reference
+The authoritative list of stable error codes and guidance for adding new domain exceptions lives in [`.github/copilot-instructions.md` – Section 21](.github/copilot-instructions.md#21-standard-exception--error-code-catalog). Review it before introducing a new error or exception handler to ensure consistency and avoid code drift.
+
+If adding a new code:
+1. Create a lightweight runtime exception (e.g. `ResourceNotFoundException`).
+2. Map it in `GlobalExceptionHandler` with proper HTTP status.
+3. Add tests (positive + negative path) asserting `{ "error": "<CODE>" }` envelope.
+4. Append the new code (do not repurpose existing ones).
+
+---
+## AI Guard Rails (Alias Tokens)
+When using Copilot or any AI assistant, prepend prompts with:
+```
+Apply BACKEND_CI_GUARD + LAYER_RULE + SECURITY_BASELINE.
+```
+Meaning:
+- BACKEND_CI_GUARD: Never create a new workflow if `backend-ci.yml` exists; if not visible respond with the exact missing-file phrase.
+- LAYER_RULE: Maintain controller → service → repository boundaries.
+- SECURITY_BASELINE: Validate inputs, avoid leaking sensitive data, enforce least privilege, add tests.
+
+These tokens map directly to detailed guidance in `.github/copilot-instructions.md`. Keeping them explicit reduces accidental violations when IntelliJ indexing is incomplete.
+
+---
+<!-- End README enhancements: contributing link, coverage badge, alias tokens note, error catalog reference -->
