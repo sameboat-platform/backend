@@ -8,7 +8,7 @@ sameboat:
   cors:
     allowed-origins:
       - https://sameboatplatform.org
-      - https://app-sameboat.netlify.app/
+      - https://app-sameboat.netlify.app
   cookie:
     secure: true
     domain: .sameboatplatform.org
