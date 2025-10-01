@@ -44,7 +44,8 @@ public class CorsConfig {
         cfg.setMaxAge(Duration.ofHours(1));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
-        log.info("CORS allowed origins: {}", cfg.getAllowedOrigins().isEmpty() ? cfg.getAllowedOriginPatterns() : cfg.getAllowedOrigins());
+        log.info("CORS allowed origins: {}", cfg.getAllowedOrigins());
+        log.info("CORS allowed origin patterns: {}", cfg.getAllowedOriginPatterns());
         return source;
     }
 }
