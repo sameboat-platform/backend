@@ -1,7 +1,7 @@
 # Week 2 Checkout Summary
 
 ## Overview (Week 2 - Sept 22 - 28):
-**Spilled over into 30th**
+**Spilled over into the 30th**
 1. ### Deployment & Runtime Readiness
    - Added a production-ready multi-stage Dockerfile (non-root user, memory tuning, `$PORT` support).
    - Introduced .dockerignore to shrink build context.
