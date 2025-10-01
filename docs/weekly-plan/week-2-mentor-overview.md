@@ -11,7 +11,7 @@ Nothing in the agents’ summaries worries me—changes were incremental, securi
 ### Fast follow checklist (short + concrete):
 1. #### Domains
    - When `sameboatplatform.com` finishes:
-     - Netlify → add `app.sameboatplatform`.com, set one primary (either .org or .com), enable “enforce primary”.
+     - Netlify → add `app.sameboatplatform.com`, set one primary (either .org or .com), enable “enforce primary”.
      - Render → add `api.sameboatplatform.com` (TLS), `keep api-sameboat.onrender.com` as fallback.
      - Update CORS allowed origins to include the chosen primary (and temp the other until you flip).
      - Cookie domain: set to `.sameboatplatform.com` (or `.org`) to match your canonical choice.
