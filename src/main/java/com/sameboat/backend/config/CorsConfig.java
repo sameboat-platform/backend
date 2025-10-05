@@ -6,6 +6,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
 import java.util.List;
 
@@ -18,6 +21,7 @@ import java.util.List;
 public class CorsConfig {
 
     private final SameboatProperties props;
+    private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
 
     public CorsConfig(SameboatProperties props) { this.props = props; }
 
@@ -26,7 +30,12 @@ public class CorsConfig {
         CorsConfiguration cfg = new CorsConfiguration();
         for (String origin : props.getCors().getAllowedOrigins()) {
             String o = origin.trim();
-            if (!o.isEmpty()) cfg.addAllowedOrigin(o);
+            if (o.isEmpty()) continue;
+            if (o.contains("*")) {
+                cfg.addAllowedOriginPattern(o);
+            } else {
+                cfg.addAllowedOrigin(o);
+            }
         }
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
@@ -35,6 +44,8 @@ public class CorsConfig {
         cfg.setMaxAge(Duration.ofHours(1));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
+        log.info("CORS allowed origins: {}", cfg.getAllowedOrigins());
+        log.info("CORS allowed origin patterns: {}", cfg.getAllowedOriginPatterns());
         return source;
     }
 }
