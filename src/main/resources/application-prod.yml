@@ -6,11 +6,26 @@ spring:
 
 sameboat:
   cors:
+    # Authoritative SPA origin(s). Remove Netlify once fully cut over.
     allowed-origins:
-      - https://sameboatplatform.org
-      - https://app-sameboat.netlify.app
+      - https://app.sameboatplatform.org
+      - https://app-sameboat.netlify.app  # TEMP fallback; remove when deprecated
   cookie:
     secure: true
     domain: .sameboatplatform.org
   session:
-    ttl-days: 14
+    ttl-days: 14  # Keep in file so SAMEBOAT_SESSION_TTL_DAYS env var can be removed
+
+# Notes:
+# - The following environment variables can be deleted in Render after deploy:
+#   SAMEBOAT_COOKIE_DOMAIN, SAMEBOAT_COOKIE_SECURE, SAMEBOAT_CORS_ALLOWED_ORIGINS, SAMEBOAT_SESSION_TTL_DAYS
+# - Keep SPRING_DATASOURCE_* and SPRING_PROFILES_ACTIVE=prod.
+#
+# - Keeping https://sameboatplatform.org here for reference, but it's not needed since
+#   the cookie domain is set to .sameboatplatform.org.
+# - If you need to add more origins, be sure to update the CORS config in
+#   the frontend (vite.config.ts and src/lib/sameboat/api.ts).
+# - If you need to add more domains for the cookie, you can do so by adding
+#   them as subdomains of sameboatplatform.org (e.g., staging.sameboatplatform.org).
+#   If you need to use a completely different domain, you'll need to set up
+#   a separate deployment of the backend with its own database.
