@@ -1,0 +1,34 @@
+# Development profile overrides (local workstation)
+# Activate with: SPRING_PROFILES_ACTIVE=dev
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:sameboat;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  h2:
+    console:
+      enabled: false
+
+sameboat:
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+  cookie:
+    secure: false        # allow HTTP for localhost
+    domain: ""          # host-only cookie (localhost)
+  session:
+    ttl-days: 7          # shorter TTL convenient for dev (matches base default)
+  auth:
+    dev-auto-create: false  # set true if you want auto user creation for testing
+
+# Notes:
+# - Do NOT set SAMEBOAT_COOKIE_DOMAIN or SAMEBOAT_COOKIE_SECURE locally.
+# - If you change dev ports, update the allowed-origins list.
+# - Dev now uses in-memory H2; prod uses Postgres.

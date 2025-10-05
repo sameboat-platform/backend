@@ -280,3 +280,9 @@ These tokens map directly to detailed guidance in `.github/copilot-instructions.
 
 ---
 <!-- End README enhancements: contributing link, coverage badge, alias tokens note, error catalog reference, deployment & hosting section -->
+
+## Quick Windows check for active profile
+```cmd
+curl.exe -i http://localhost:8080/actuator/env | findstr /I active
+curl.exe -i http://localhost:8080/actuator/env | findstr /I sameboat
+``` 
