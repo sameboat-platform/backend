@@ -32,4 +32,11 @@ class PublicActuatorEndpointsIntegrationTest {
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.status").value("UP"));
     }
+
+    @Test
+    @DisplayName("GET /api/actuator/info is public")
+    void apiActuatorInfo() throws Exception {
+        mvc.perform(get("/api/actuator/info"))
+           .andExpect(status().isOk());
+    }
 }
