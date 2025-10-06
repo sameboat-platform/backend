@@ -1,0 +1,28 @@
+name: Test Coverage
+description: Add or improve tests for a component or flow
+labels: ["type:test", "roadmap"]
+body:
+  - type: input
+    id: area
+    attributes:
+      label: Area / Component
+      placeholder: e.g., Auth context login/logout; HealthCheckCard pause-on-error
+    validations:
+      required: true
+  - type: textarea
+    id: cases
+    attributes:
+      label: Test Cases
+      placeholder: |
+        - Login succeeds sets user and status
+        - Logout resets user and status
+        - Register handles EMAIL_EXISTS
+    validations:
+      required: true
+  - type: dropdown
+    id: release
+    attributes:
+      label: Target Release
+      options:
+        - 0.2.0
+        - Future

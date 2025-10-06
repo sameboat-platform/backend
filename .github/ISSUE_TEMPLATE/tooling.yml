@@ -1,0 +1,28 @@
+name: Tooling / Automation
+description: CI/CD, release, dependency, or project automation task
+labels: ["type:tooling", "area:ci", "roadmap"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: e.g., Verify CHANGELOG entry before tagging release
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details / Plan
+      placeholder: |
+        - Add CI job to run npm audit and fail on high/critical
+        - Auto-label Dependabot PRs and add to Project
+        - Script release creation via gh CLI once adopted
+    validations:
+      required: true
+  - type: dropdown
+    id: release
+    attributes:
+      label: Target Release
+      options:
+        - 0.2.0
+        - Future
