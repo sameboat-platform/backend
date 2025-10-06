@@ -67,7 +67,8 @@ public class SecurityConfig {
                 .csrf(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info", "/health", "/api/actuator/health", "/api/actuator/info", "/auth/login", "/auth/register", "/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/actuator/health", "/api/actuator/info").permitAll()
+                        .requestMatchers("/health", "/auth/login", "/auth/register", "/api/auth/login", "/api/auth/register").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(jsonAuthEntryPoint)

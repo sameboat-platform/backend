@@ -1,0 +1,49 @@
+name: Maintainer Feature / Enhancement
+description: Propose a new feature or improvement
+labels: ["type:feature", "roadmap"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an enhancement.
+        Use this form to describe the goal, acceptance criteria, and any risks.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-line description of the feature
+      placeholder: e.g., Pause polling after consecutive failures with Resume CTA
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / Problem
+      description: What problem does this solve? Why now?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Bullet points the solution must meet
+      placeholder: |
+        - After 3 consecutive failures, polling stops
+        - A visible Resume button restarts polling
+        - Status updates are reflected in UI and tests
+    validations:
+      required: true
+  - type: dropdown
+    id: release
+    attributes:
+      label: Target Release
+      options:
+        - 0.2.0
+        - Future
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / Links
+      description: Additional context, spike notes, or references

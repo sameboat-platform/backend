@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation (README)
+    url: https://github.com/sameboat-platform/frontend#readme
+    about: Review project setup, scripts, and workflows
+  - name: Architecture Docs
+    url: https://github.com/sameboat-platform/frontend/blob/main/docs/architecture.md
+    about: Architecture and extension points

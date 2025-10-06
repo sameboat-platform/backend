@@ -16,6 +16,13 @@ spring:
     console:
       enabled: false
 
+management:
+  endpoints:
+    web:
+      base-path: /api/actuator
+      exposure:
+        include: health,info
+
 sameboat:
   cors:
     allowed-origins:

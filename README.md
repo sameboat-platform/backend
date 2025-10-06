@@ -8,7 +8,7 @@
 > git remote set-url origin git@github.com:sameboat-platform/sameboat-backend.git
 > ```
 
-> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Week 3 Plan](./docs/weekly-plan/week-3-plan.md) | [Contributing](./CONTRIBUTING.md) | Guard Rails: [Copilot Instructions](.github/copilot-instructions.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
+> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Week 3 Plan](./docs/weekly-plan/week-3/week-3-plan.md) | [Contributing](./CONTRIBUTING.md) | Guard Rails: [Copilot Instructions](.github/copilot-instructions.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
 
 ## Getting Started (Contributors)
 Before writing code or using AI assistance:

@@ -1,0 +1,65 @@
+name: Bug Report
+about: ''
+title: ''
+labels: ["type:fix", "roadmap"]
+assignees: ''
+description: Report a bug or regression
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-line description of the bug
+      placeholder: e.g., "Button does not work"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      description: Provide steps, sample data, or screenshots
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: e.g., "Button should be enabled"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: e.g., "Button is disabled"
+    validations:
+      required: true
+  - type: image
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: If applicable, add screenshots to help explain your problem
+      placeholder: e.g., "Attach screenshot"
+    validations:
+      required: false
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Browser, OS, Node, etc.
+      placeholder: e.g., "Chrome 92 on Windows 10"
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Any additional information or context
+      placeholder: e.g., "Related to issue #123"
+    validations:
+      required: false

@@ -1,4 +1,4 @@
-# TODO / Backlog (Post Week 2 Enhancements)
+# Things To Do
 
 This backlog captures agreed future improvements not yet implemented. Items are grouped by area and tagged with suggested priority (P1 highest). Date: 2025-09-27
 
@@ -89,5 +89,16 @@ Name it something clear like “Protect main (PR + CI)” and you’re done.
 |------|----|----|-------|
 
 ---
-(End of Backlog)
+# 12. Week 3 Blocking Items (2025-10-05)
+| ID | Item | Description | Priority | Notes |
+|----|------|-------------|----------|-------|
+| WK3-001 | Password Complexity Validation | Enforce password rules (min 8 chars, 1 upper, 1 lower, 1 digit) and map violations to VALIDATION_ERROR | P1 | Add tests and document in API |
+| WK3-002 | Basic Rate Limiting | Implement naive rate limiting for auth endpoints (5 attempts/5 min/email/IP), return RATE_LIMITED | P1 | Add INFO log and tests |
+| WK3-003 | Session Pruning Job | Scheduled task to delete expired sessions hourly | P1 | Add integration test |
+| WK3-004 | Migration Test in CI | Ensure migration test runs in CI using Testcontainers/Postgres | P1 | Document in instructions.md |
+| WK3-005 | Unit Test Coverage | Add/improve unit tests for UserService, SessionService, password validator (≥75%) | P1 | Document coverage status |
+| WK3-006 | Docs: instructions.md, RISKS.md | Create and link instructions.md and RISKS.md | P1 | Link from README and project board |
+| WK3-007 | JWT Spike Doc | Prepare JWT spike decision doc (pros/cons, migration plan) | P2 | Link from README and project board |
 
+---
+(End of Backlog)
