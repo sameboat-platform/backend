@@ -101,4 +101,20 @@ Name it something clear like “Protect main (PR + CI)” and you’re done.
 | WK3-007 | JWT Spike Doc | Prepare JWT spike decision doc (pros/cons, migration plan) | P2 | Link from README and project board |
 
 ---
+## Versioning & Continuous Delivery Checklist
+
+- [x] SemVer versioning system in place (pom.xml, tags)
+- [x] CI/CD workflow automates build, test, and release
+- [x] /api/version endpoint available for deployment verification
+- [x] Documentation updated (README, instructions, CONTRIBUTING, HELP)
+- [x] Milestones and project board updated
+- [x] Release communicated to collaborators
+
+### For future releases:
+- Bump version in pom.xml
+- Tag and push release (vX.Y.Z)
+- Verify deployment via /api/version
+- Update docs and communicate changes
+
+---
 (End of Backlog)

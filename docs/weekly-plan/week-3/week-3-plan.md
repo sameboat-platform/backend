@@ -126,5 +126,20 @@ Stretch (if bandwidth permits): OpenAPI generation + typed client, initial sessi
 - CDN edge cache customization beyond default
 
 ---
+## Week 3 Completion Checklist
+- [ ] Password complexity validation (min 8 chars, upper/lower/digit) implemented and tested
+- [ ] Rate limiting (5 attempts/5 min per email/IP) returns 429 `RATE_LIMITED` and is tested
+- [ ] Session pruning scheduled job deletes expired sessions; integration test verifies deletion
+- [ ] INFO log for rate-limit triggers added
+- [ ] Frontend login page with error display (BAD_CREDENTIALS, RATE_LIMITED)
+- [ ] Session stored via cookie; `/me` fetched on app mount
+- [ ] 401/SESSION_EXPIRED redirects to /login
+- [ ] User email displayed with logout button
+- [ ] Testcontainers migration test enabled in CI; coverage gate raised to 75% (or fallback documented)
+- [ ] Unit tests for UserService (updatePartial, normalizeEmail), SessionService (touch & expiry logic), password validator
+- [ ] Documentation: `docs/instructions.md` and `docs/RISKS.md` created and linked in README
+- [ ] JWT spike doc: `docs/spikes/jwt_vs_extended_sessions.md` committed
+- [ ] (Stretch) OpenAPI spec generated, static spec exported, TypeScript types generated
+- [ ] (Stretch) Structured JSON logging (prod profile) and log correlation id
+- [ ] (Stretch) Basic audit table for login/logout events
 *Prepared at start of Week 3; adjustments allowed with documented rationale.*
-
