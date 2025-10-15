@@ -1,12 +1,10 @@
 package com.sameboat.backend.auth;
 
-import com.sameboat.backend.auth.dto.LoginRequest;
 import com.sameboat.backend.auth.dto.LoginResponse;
 import com.sameboat.backend.auth.dto.RegisterRequest;
 import com.sameboat.backend.auth.session.SessionService;
 import com.sameboat.backend.common.ErrorResponse;
 import com.sameboat.backend.config.SameboatProperties;
-import com.sameboat.backend.user.UserMapper;
 import com.sameboat.backend.user.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.Map;
 
 /**
