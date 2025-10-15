@@ -90,4 +90,11 @@ If you add features needing new origins, domains, or headers: update those docs 
 ## 13. Getting Help
 Open a draft PR early if change is sizable. Use discussions or issues for architectural questions. When in doubt, favor smaller, incremental PRs.
 
+## Versioning & Release Responsibilities
+
+- Use Semantic Versioning (v0.1.0, v0.2.0, v1.0.0, etc.) for all releases.
+- Before release, bump the version in pom.xml and follow the tagging process in README.md.
+- After deployment, verify the backend version using GET /api/version.
+- Review docs/instructions.md for environment and deployment details.
+
 Thanks for contributing! 🚢

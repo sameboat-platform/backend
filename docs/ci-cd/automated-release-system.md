@@ -143,6 +143,13 @@ git push ; git push --follow-tags
 
 ---
 
+## Backend Versioning & Release Flow
+
+- Semantic Versioning (v0.1.0, v0.2.0, etc.) is used for all backend releases.
+- Annotated tags trigger CI/CD workflow for build, test, and artifact publishing.
+- Use /api/version to verify deployed backend version after release.
+- See README and docs/instructions.md for full process.
+
 ## FAQ / Notes
 
 - Do we have to implement this verbatim on the backend?

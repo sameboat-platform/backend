@@ -239,4 +239,37 @@ If migration chain fails locally:
 4. Run `flyway:info` with explicit credentials for diagnostics
 
 ---
+## 16. Release & Continuous Delivery
+
+### Creating a Release
+1. Update the version in `pom.xml` (e.g., to 0.2.0).
+2. Create an annotated tag: `git tag -a v0.2.0 -m "Release v0.2.0"`
+3. Push the tag: `git push origin v0.2.0`
+
+### CI/CD Workflow
+- The GitHub Actions workflow (`backend-ci.yml`) will build, test, and publish the backend JAR to GitHub Releases when a tag matching `v*` is pushed.
+- Deployment to Render/Docker is triggered by pulling the new release artifact or by Render auto-deploying on new commits/tags (see Render documentation for details).
+
+### Milestones
+- Use GitHub milestones (e.g., v0.2.0) to track release progress and link related issues.
+
+See the README for a summary and quick reference.
+
+---
+## 17. Deployment Verification
+
+After each release, verify the deployed backend version by calling:
+```
+GET /api/version
+```
+This endpoint returns the current backend version (from pom.xml) and does not require authentication.
+
+---
+## 18. Versioning & Release Flow
+
+- This project uses Semantic Versioning (SemVer): v0.1.0, v0.2.0, v1.0.0, etc.
+- Release tags are created and pushed to GitHub; CI/CD automates build, test, and artifact publishing.
+- See README for the full release checklist and onboarding steps.
+
+---
 _Updated after datasource priority & logging enhancements and migration immutability tooling (Week 2 refinement)._

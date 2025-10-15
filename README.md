@@ -227,6 +227,25 @@ Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_E
 - Central OpenAPI (`openapi/sameboat.yaml`) sync
 - Client-friendly error detail localizations
 
+## Versioning & Continuous Delivery
+
+This project uses [Semantic Versioning](https://semver.org/) (v0.1.0, v0.2.0, v1.0.0, etc.) for all releases. Version tags are created and pushed to GitHub (see below).
+
+### Release Process
+1. Bump the version in `pom.xml` (e.g., to 0.2.0).
+2. Create an annotated tag: `git tag -a v0.2.0 -m "Release v0.2.0"`
+3. Push the tag: `git push origin v0.2.0`
+4. The CI workflow (`backend-ci.yml`) will build, test, and publish the backend JAR to GitHub Releases.
+5. Deployment to Render/Docker is triggered by new tags/releases (see Render docs).
+6. Verify deployment by calling `GET /api/version` on the deployed backend.
+
+### Milestones & Project Board
+- Track release progress and issues in GitHub milestones (e.g., v0.2.0) and the project board.
+
+### Onboarding Checklist
+- Review CONTRIBUTING.md and docs/instructions.md for setup and release steps.
+- Use the /api/version endpoint to confirm deployed version.
+
 ## Sample cURL
 ```bash
 # Register
@@ -285,4 +304,21 @@ These tokens map directly to detailed guidance in `.github/copilot-instructions.
 ```cmd
 curl.exe -i http://localhost:8080/actuator/env | findstr /I active
 curl.exe -i http://localhost:8080/actuator/env | findstr /I sameboat
-``` 
+```
+
+## Release & Continuous Delivery
+
+### Creating a Release
+1. Bump the version in `pom.xml` (e.g., to 0.2.0).
+2. Create an annotated tag: `git tag -a v0.2.0 -m "Release v0.2.0"`
+3. Push the tag: `git push origin v0.2.0`
+
+### What Happens Next
+- The CI workflow (`backend-ci.yml`) will automatically build and test the backend.
+- On tag push (v*), the workflow publishes the JAR artifact to GitHub Releases.
+- Deployment to Render/Docker can be triggered by pulling the new release artifact or by Render auto-deploying on new commits/tags (see Render docs).
+
+### Release Milestones
+- Track release progress and issues in the GitHub milestone (e.g., v0.2.0).
+
+See also: [docs/instructions.md](./docs/instructions.md) for environment and deployment details.
