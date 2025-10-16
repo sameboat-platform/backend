@@ -30,7 +30,7 @@ Deliver the first user-visible feature beyond authentication: the **Stories** fe
   - `POST /api/stories` (create)
   - `GET /api/stories` (list recent, paginated)
   - `DELETE /api/stories/{id}` (author-only)
-- [ ] Add Flyway migration `V3__create_stories.sql`.
+- [ ] Add Flyway migration `V5__create_stories.sql`.
 - [ ] Integration tests for create/delete + auth coupling.
 
 ### Frontend Tasks

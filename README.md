@@ -312,20 +312,3 @@ These tokens map directly to detailed guidance in `.github/copilot-instructions.
 curl.exe -i http://localhost:8080/actuator/env | findstr /I active
 curl.exe -i http://localhost:8080/actuator/env | findstr /I sameboat
 ```
-
-## Release & Continuous Delivery
-
-### Creating a Release
-1. Bump the version in `pom.xml` (e.g., to 0.2.0).
-2. Create an annotated tag: `git tag -a v0.2.0 -m "Release v0.2.0"`
-3. Push the tag: `git push origin v0.2.0`
-
-### What Happens Next
-- The CI workflow (`backend-ci.yml`) will automatically build and test the backend.
-- On tag push (v*), the workflow publishes the JAR artifact to GitHub Releases.
-- Deployment to Render/Docker can be triggered by pulling the new release artifact or by Render auto-deploying on new commits/tags (see Render docs).
-
-### Release Milestones
-- Track release progress and issues in the GitHub milestone (e.g., v0.2.0).
-
-See also: [docs/instructions.md](./docs/instructions.md) for environment and deployment details.

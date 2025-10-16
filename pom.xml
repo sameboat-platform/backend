@@ -140,7 +140,12 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Removed properties-maven-plugin: rely only on resource filtering -->
+            <!--
+                Removed properties-maven-plugin.
+                Previously, properties-maven-plugin was used to inject version information into application.properties.
+                This is now handled by Maven's resource filtering (see <resources> above), which makes the plugin redundant.
+                Version and other property values are now injected directly into application.properties via resource filtering.
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
