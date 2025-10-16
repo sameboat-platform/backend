@@ -1,11 +1,15 @@
-# BACKEND_CI_GUARD: Single authoritative workflow. If this file is visible, do NOT create another workflow.
-# If you (Copilot) cannot see it, tell the user it is missing instead of generating a new one.
+# BACKEND_CI_GUARD: backend-ci.yml is the authoritative main CI pipeline.
+# If your editor cannot see this file (indexing glitch), DO NOT generate a new CI workflow.
+# First ask for confirmation that the file truly does not exist in the repo.
+# Additional scoped workflows (e.g., backend-coverage.yml, ci-guard.yml) are allowed.
 name: Backend CI
 
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main ]
 
@@ -62,3 +66,28 @@ jobs:
         run: bash mvnw -B -ntp -Pwith-migration-test test
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'false'
+
+  release:
+    name: Release Artifact
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: 'maven'
+      - name: Build JAR
+        run: bash mvnw -B -ntp package -DskipTests
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/backend-*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

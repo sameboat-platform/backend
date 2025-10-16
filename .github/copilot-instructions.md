@@ -3,7 +3,7 @@
 Purpose: Collaborators (and their AI assistants) should read this file first to understand constraints, architecture, workflows, and prompting patterns. Open this file in an editor tab before asking Copilot for help so it can be included in context.
 
 ALIAS TOKENS (use these in prompts):
-- BACKEND_CI_GUARD – Single-workflow enforcement rule (see CI section)
+- BACKEND_CI_GUARD – Respect main CI workflow guard (see CI section)
 - LAYER_RULE – Enforce controller → service → repository layering (no skipping)
 - SECURITY_BASELINE – Follow security, validation, and least-privilege rules
 
@@ -15,14 +15,14 @@ ALIAS TOKENS (use these in prompts):
 4. Run an integration test (e.g. `AuthFlowIntegrationTest`).
 5. Create a branch: `feat/<short-description>`.
 6. For any change: apply prompt preamble: `Apply BACKEND_CI_GUARD + LAYER_RULE + SECURITY_BASELINE.`
-7. Before asking for CI changes: verify whether `.github/workflows/backend-ci.yml` exists locally (list the directory) — do NOT generate new workflows if it exists.
+7. Before asking for CI changes: verify whether `.github/workflows/backend-ci.yml` exists locally (list the directory) — do NOT generate a duplicate main CI workflow if it exists.
 8. Add at least one test for each new service method or controller endpoint.
 9. Keep migrations atomic; never rewrite an old one.
 10. Open this file in a tab while using Copilot so it can pick up context.
 
 ---
 ## 1. Core Principles
-1. Single authoritative CI workflow file: `backend-ci.yml` (if present) – do NOT create additional workflow files unless explicitly instructed.
+1. CI workflows: `backend-ci.yml` is the authoritative main pipeline. Additional scoped workflows (e.g., coverage reports, guards) are allowed. If your editor cannot see `backend-ci.yml` (indexing glitch), do not create another main CI file—ask for confirmation first (see Section 18).
 2. Layered architecture: Controller -> Service -> Repository (JPA). No direct repository access from controllers. Keep business rules in services.
 3. Fail fast, validate early (Bean Validation + explicit defensive checks for security-sensitive paths).
 4. Prefer clarity over clever cleverness; minimize hidden side effects.
@@ -236,14 +236,13 @@ Guidelines:
 
 ---
 ## 8. CI Workflow Guard (BACKEND_CI_GUARD) – CRITICAL
-Rule enforced in human process + hooks:
-If `.github/workflows/backend-ci.yml` exists:
-- Only modify that file for CI changes.
-- Do NOT create additional workflow YAML files (ci.yml, build.yml, etc.).
-If the file appears missing or Copilot cannot see it:
-- Copilot (or collaborator) must respond exactly:
-  `backend-ci.yml is missing. Please confirm before I generate any new CI workflow.`
-No new workflow should be generated until user confirms absence is real (indexing can be stale in IntelliJ).
+Human process + hooks:
+- `backend-ci.yml` is the main pipeline. Do not generate another main CI workflow if it exists.
+- Additional scoped workflows (like `backend-coverage.yml`, `ci-guard.yml`) are allowed to coexist.
+- If `backend-ci.yml` appears missing or your editor cannot see it:
+  - Copilot (or collaborator) must respond exactly:
+    `backend-ci.yml is missing. Please confirm before I generate any new CI workflow.`
+  - Wait for explicit confirmation before proposing any new main CI workflow (IDE indexing can be stale).
 
 Recommended Prompt Preamble Snippet:
 ```
@@ -345,7 +344,7 @@ Copilot must output:
 ```
 backend-ci.yml is missing. Please confirm before I generate any new CI workflow.
 ```
-Then wait for explicit confirmation before proposing any workflow file.
+Then wait for explicit confirmation before proposing any new main CI workflow. Additional scoped workflows are permitted and do not change this guard.
 
 ---
 ## 19. Local Dev Commands

@@ -17,11 +17,14 @@ spring:
       enabled: false
 
 management:
+  info:
+    env:
+      enabled: true
   endpoints:
     web:
-      base-path: /api/actuator
+      base-path: /actuator
       exposure:
-        include: health,info
+        include: health,info,metrics
 
 sameboat:
   cors:

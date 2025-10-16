@@ -1,5 +1,5 @@
 ![Backend CI](https://github.com/sameboat-platform/backend/actions/workflows/backend-ci.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-JaCoCo%20≥70%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-JaCoCo%20%E2%89%A570%25-brightgreen)
 [![Contributing](https://img.shields.io/badge/guide-CONTRIBUTING.md-blue)](./CONTRIBUTING.md) [![Guard Rails](https://img.shields.io/badge/AI%20Guard%20Rails-copilot--instructions.md-purple)](.github/copilot-instructions.md)
 # SameBoat Backend (Spring Boot + Java 21)
 
@@ -32,7 +32,9 @@ Alias Tokens (for AI prompts): `BACKEND_CI_GUARD`, `LAYER_RULE`, `SECURITY_BASEL
    ```bash
    ./mvnw spring-boot:run
    ```
-4. Health check: `GET /health` → 200 OK
+4. Health checks (both are public):
+   - `GET /health` → 200 OK (custom simple health)
+   - `GET /actuator/health` → 200 OK and `{ "status": "UP" }`
 
 ### Container (Docker) Usage
 A multi-stage Dockerfile is provided for local testing and Render deployment.
@@ -227,6 +229,30 @@ Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_E
 - Central OpenAPI (`openapi/sameboat.yaml`) sync
 - Client-friendly error detail localizations
 
+## Versioning & Continuous Delivery
+
+This project uses [Semantic Versioning](https://semver.org/) (v0.1.0, v0.2.0, v1.0.0, etc.) for all releases. Version tags are created and pushed to GitHub (see below).
+
+### Release Process
+1. Bump the version in `pom.xml` (e.g., to 0.2.0).
+2. Create an annotated tag: `git tag -a v0.2.0 -m "Release v0.2.0"`
+3. Push the tag: `git push origin v0.2.0`
+4. The CI workflow (`backend-ci.yml`) will build, test, and publish the backend JAR to GitHub Releases.
+5. Deployment to Render/Docker is triggered by new tags/releases (see Render docs).
+6. Verify deployment by calling `GET /api/version` on the deployed backend.
+
+### Milestones & Project Board
+- Track release progress and issues in GitHub milestones (e.g., v0.2.0) and the project board.
+
+### Onboarding Checklist
+- Review CONTRIBUTING.md and docs/instructions.md for setup and release steps.
+- Use the /api/version endpoint to confirm deployed version.
+
+### Verification (smoke)
+Use any HTTP client or browser:
+- `GET /actuator/health` → should return 200 + `{ "status": "UP" }` (public)
+- `GET /api/version` → should return 200 + `{ "version": "<semver>" }` (public)
+
 ## Sample cURL
 ```bash
 # Register
@@ -285,4 +311,4 @@ These tokens map directly to detailed guidance in `.github/copilot-instructions.
 ```cmd
 curl.exe -i http://localhost:8080/actuator/env | findstr /I active
 curl.exe -i http://localhost:8080/actuator/env | findstr /I sameboat
-``` 
+```

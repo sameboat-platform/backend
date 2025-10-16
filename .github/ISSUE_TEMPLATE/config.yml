@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation (README)
-    url: https://github.com/sameboat-platform/frontend#readme
+    url: https://github.com/sameboat-platform/backend#readme
     about: Review project setup, scripts, and workflows
   - name: Architecture Docs
-    url: https://github.com/sameboat-platform/frontend/blob/main/docs/architecture.md
+    url: https://github.com/sameboat-platform/backend/blob/main/docs/architecture.md
     about: Architecture and extension points
