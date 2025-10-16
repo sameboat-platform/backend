@@ -13,13 +13,16 @@ spring:
       WRITE_DATES_AS_TIMESTAMPS: false
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: when-authorized
+    info:
+      env:
+        enabled: true
+    endpoints:
+      web:
+        exposure:
+          include: health,info
+    endpoint:
+      health:
+        show-details: always
 
 server:
   port: 8080
