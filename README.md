@@ -1,5 +1,5 @@
 ![Backend CI](https://github.com/sameboat-platform/backend/actions/workflows/backend-ci.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-JaCoCo%20≥70%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-JaCoCo%20%E2%89%A570%25-brightgreen)
 [![Contributing](https://img.shields.io/badge/guide-CONTRIBUTING.md-blue)](./CONTRIBUTING.md) [![Guard Rails](https://img.shields.io/badge/AI%20Guard%20Rails-copilot--instructions.md-purple)](.github/copilot-instructions.md)
 # SameBoat Backend (Spring Boot + Java 21)
 
@@ -32,7 +32,9 @@ Alias Tokens (for AI prompts): `BACKEND_CI_GUARD`, `LAYER_RULE`, `SECURITY_BASEL
    ```bash
    ./mvnw spring-boot:run
    ```
-4. Health check: `GET /health` → 200 OK
+4. Health checks (both are public):
+   - `GET /health` → 200 OK (custom simple health)
+   - `GET /actuator/health` → 200 OK and `{ "status": "UP" }`
 
 ### Container (Docker) Usage
 A multi-stage Dockerfile is provided for local testing and Render deployment.
@@ -245,6 +247,11 @@ This project uses [Semantic Versioning](https://semver.org/) (v0.1.0, v0.2.0, v1
 ### Onboarding Checklist
 - Review CONTRIBUTING.md and docs/instructions.md for setup and release steps.
 - Use the /api/version endpoint to confirm deployed version.
+
+### Verification (smoke)
+Use any HTTP client or browser:
+- `GET /actuator/health` → should return 200 + `{ "status": "UP" }` (public)
+- `GET /api/version` → should return 200 + `{ "version": "<semver>" }` (public)
 
 ## Sample cURL
 ```bash
