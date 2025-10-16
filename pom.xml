@@ -131,6 +131,13 @@
                     <include>application.properties</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>db/migration/**</include>
+                </includes>
+            </resource>
         </resources>
         <plugins>
             <!-- Removed properties-maven-plugin: rely only on resource filtering -->
