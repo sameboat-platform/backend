@@ -43,7 +43,7 @@ class MigrationIntegrationTest {
                 assertUserTableColumns(conn);
                 assertSessionsTableColumns(conn);
                 assertUsersEmailLowerIndex(conn);
-                assertFlywayHistoryVersions(conn, "1", "2", "3");
+                assertFlywayHistoryVersions(conn, "1", "2", "3", "4");
             }
         }
     }

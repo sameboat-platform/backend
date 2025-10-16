@@ -13,11 +13,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 /**
- * Verifies that health/info actuator endpoints (with and without the /api base path) are public.
+ * Verifies that health/info actuator endpoints are public at the default /actuator base path.
  */
-@SpringBootTest(properties = {
-        "management.endpoints.web.base-path=/api/actuator"
-})
+@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class PublicActuatorEndpointsIntegrationTest {
@@ -26,10 +24,18 @@ class PublicActuatorEndpointsIntegrationTest {
     MockMvc mvc;
 
     @Test
-    @DisplayName("GET /api/actuator/health is public")
-    void apiActuatorHealth() throws Exception {
-        mvc.perform(get("/api/actuator/health"))
+    @DisplayName("GET /actuator/health is public")
+    void actuatorHealth() throws Exception {
+        mvc.perform(get("/actuator/health"))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.status").value("UP"));
+    }
+
+    @Test
+    @DisplayName("GET /actuator/info is public and returns version field")
+    void actuatorInfo() throws Exception {
+        mvc.perform(get("/actuator/info"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.build.version").exists());
     }
 }

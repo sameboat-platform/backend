@@ -10,9 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-        "management.endpoints.web.base-path=/api/actuator"
-})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test") // <-- IMPORTANT
 class HealthCheckIntegrationTest {
 
@@ -25,7 +23,7 @@ class HealthCheckIntegrationTest {
     @Test
     void actuatorHealthEndpointShouldReturnUp() {
         ResponseEntity<String> res =
-                rest.getForEntity("http://localhost:" + port + "/api/actuator/health", String.class);
+                rest.getForEntity("http://localhost:" + port + "/actuator/health", String.class);
         assertThat(res.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(res.getBody()).contains("UP");
     }
