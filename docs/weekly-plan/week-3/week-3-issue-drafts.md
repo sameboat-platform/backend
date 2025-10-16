@@ -117,7 +117,7 @@ This document contains ready-to-copy issue drafts for GitHub, covering all tasks
 - Review all completed issues and PRs for Week 3.
 - Confirm all tests pass and coverage meets minimum requirements.
 - Complete reflection and journal notes for Week 3.
-- Complete a week-3-exit-report.md in docs/exit-reports/ that includes overview, highlights, what went well, what we struggled with, completed vs planned, notable PRs/commits, metrics and quaility gates, and follow-up actions.
+- Complete a week-3-exit-report.md in docs/exit-reports/ that includes overview, highlights, what went well, what we struggled with, completed vs planned, notable PRs/commits, metrics and quality gates, and follow-up actions.
   Labels: `typetest`, `documentation`, `area:release`, `area:project`
   Milestone: v0.2.0
 ---
