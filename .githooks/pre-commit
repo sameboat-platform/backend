@@ -17,8 +17,11 @@ fi
 if git diff --cached --name-only | grep -q '^\.github/workflows/backend-ci\.yml$'; then
   if [[ "${ALLOW_CI_EDIT:-}" != "1" ]]; then
     echo "❌ backend-ci.yml is protected."
-    echo "   If this change is intentional, re-run with:"
-    echo "   ALLOW_CI_EDIT=1 git commit -m \"ci: intentional backend-ci change\""
+    echo "   If this change is intentional, set ALLOW_CI_EDIT=1 and retry the commit."
+    echo "   Examples by shell:"
+    echo "     • Git Bash:      ALLOW_CI_EDIT=1 git commit -m \"ci: intentional backend-ci change\""
+    echo "     • PowerShell:    $env:ALLOW_CI_EDIT='1'; git commit -m \"ci: intentional backend-ci change\"; Remove-Item Env:ALLOW_CI_EDIT"
+    echo "     • cmd.exe:       set ALLOW_CI_EDIT=1 && git commit -m \"ci: intentional backend-ci change\" && set ALLOW_CI_EDIT="
     exit 1
   fi
 fi

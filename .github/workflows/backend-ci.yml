@@ -1,5 +1,7 @@
-# BACKEND_CI_GUARD: Single authoritative workflow. If this file is visible, do NOT create another workflow.
-# If you (Copilot) cannot see it, tell the user it is missing instead of generating a new one.
+# BACKEND_CI_GUARD: backend-ci.yml is the authoritative main CI pipeline.
+# If your editor cannot see this file (indexing glitch), DO NOT generate a new CI workflow.
+# First ask for confirmation that the file truly does not exist in the repo.
+# Additional scoped workflows (e.g., backend-coverage.yml, ci-guard.yml) are allowed.
 name: Backend CI
 
 on:
