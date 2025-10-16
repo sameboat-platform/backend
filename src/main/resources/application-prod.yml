@@ -20,7 +20,7 @@ sameboat:
       - https://www.sameboatplatform.org
       - https://app.sameboatplatform.org
       - https://app-sameboat.netlify.app  # TEMP fallback; remove when deprecated
-      - https://deploy-preview-50--app-sameboat.netlify.app  # preview access for testing
+      - https://deploy-preview-*--app-sameboat.netlify.app  # allow all Netlify PR preview URLs for this site only
 
   cookie:
     secure: true
