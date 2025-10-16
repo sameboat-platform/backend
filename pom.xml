@@ -34,7 +34,7 @@
         <flyway.url>jdbc:postgresql://localhost:5432/sameboat</flyway.url>
         <flyway.user>postgres</flyway.user>
         <flyway.password>postgres</flyway.password>
-        <lombok.version>1.18.40</lombok.version>
+        <lombok.version>1.18.42</lombok.version>
     </properties>
     <dependencies>
         <dependency>
