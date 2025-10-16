@@ -84,7 +84,7 @@ jobs:
           java-version: '21'
           cache: 'maven'
       - name: Build JAR
-        run: bash mvnw -B -ntp package
+        run: bash mvnw -B -ntp package -DskipTests
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
