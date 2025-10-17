@@ -2,7 +2,7 @@
 
 **FE (React+Vite) →** HTTP/JSON → **BE (Spring Boot 3, Java 21) →** JDBC → **Postgres (Neon)**
 
-- Auth: stub (session/JWT later)
+- Auth: opaque session cookie (UUID) with server-side lookup; registration enforces password complexity; login rate-limited; scheduled session pruning.
 - Core entities: users, stories, trust_events
 - Migrations: Flyway (V1 applied)
 - Envs: DB_URL only (OpenAI later)
@@ -15,7 +15,7 @@
 | Frontend (SPA) | Netlify | https://app.sameboatplatform.org | Calls API subdomain (CORS & cookies). |
 | Root Domains | Registrar / DNS | sameboatplatform.org (+ .com redirect) | `.com` 301 → `.org`. Configure APEX + `www` as needed. |
 | Database | Neon Postgres (managed) | TLS required (jdbc `sslmode=require`) | Branching for previews later. |
-| Session Cookie | Browser (Set by API) | Domain: `.sameboatplatform.org` | Name `SBSESSION`, `Secure`, `HttpOnly`, `SameSite=Lax`. |
+| Session Cookie | Browser (Set by API) | Domain: `.sameboatplatform.org` | Name `SBSESSION`, `Secure` (prod), `HttpOnly`, `SameSite=Lax`. |
 | CORS Allowlist | Spring Config | https://app.sameboatplatform.org | Credentials (cookies) allowed; keep list minimal. |
 
 ### Environment Variables (Prod Example)
@@ -38,10 +38,13 @@ SAMEBOAT_CORS_ALLOWED_ORIGINS=https://app.sameboatplatform.org
 - Enforce HTTPS at Render & Netlify; HTTP → HTTPS redirect.
 - TLS enforced to Neon with `sslmode=require`.
 - Only whitelisted origin gets credentialed CORS; avoid wildcard origins.
+- Registration password policy: min 8 chars, includes upper/lower/digit.
+- Rate limiting on login (5 attempts / 5 min) returns 429 RATE_LIMITED.
+- Scheduled session pruning removes expired rows (hourly); expiry also enforced at request time.
 
 ### Future Enhancements
 - Add staging environment: `staging-api.sameboatplatform.org` + Neon branch database.
 - CDN caching layer for static assets (handled by Netlify). API remains dynamic.
-- Potential WAF / rate limiting at edge (Render or external service) for auth endpoints.
+- Potential WAF / distributed rate limiting (e.g., Redis) for multi-instance auth endpoints.
 
 ---

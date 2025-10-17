@@ -87,18 +87,18 @@ Name it something clear like “Protect main (PR + CI)” and you’re done.
 ## 11. Completed Items Log (Append Here When Done)
 | Date | ID | PR | Notes |
 |------|----|----|-------|
+| 2025-10-16 | WK3-001 |  | Password complexity validation enforced (register); tests added; README/API updated |
+| 2025-10-16 | WK3-002 |  | Login rate limiting (5 attempts/5 min) with 429 RATE_LIMITED; tests added; logs at INFO |
+| 2025-10-16 | WK3-003 |  | Session pruning scheduler (hourly) with JPQL bulk delete; integration test added |
+| 2025-10-16 | WK3-006 |  | docs/RISKS.md created and linked; README references updated |
+| 2025-10-16 | WK3-007 |  | JWT vs. opaque sessions spike committed (docs/spikes/jwt-session-tradeoffs.md) |
 
 ---
 # 12. Week 3 Blocking Items (2025-10-05)
 | ID | Item | Description | Priority | Notes |
 |----|------|-------------|----------|-------|
-| WK3-001 | Password Complexity Validation | Enforce password rules (min 8 chars, 1 upper, 1 lower, 1 digit) and map violations to VALIDATION_ERROR | P1 | Add tests and document in API |
-| WK3-002 | Basic Rate Limiting | Implement naive rate limiting for auth endpoints (5 attempts/5 min/email/IP), return RATE_LIMITED | P1 | Add INFO log and tests |
-| WK3-003 | Session Pruning Job | Scheduled task to delete expired sessions hourly | P1 | Add integration test |
-| WK3-004 | Migration Test in CI | Ensure migration test runs in CI using Testcontainers/Postgres | P1 | Document in instructions.md |
-| WK3-005 | Unit Test Coverage | Add/improve unit tests for UserService, SessionService, password validator (≥75%) | P1 | Document coverage status |
-| WK3-006 | Docs: instructions.md, RISKS.md | Create and link instructions.md and RISKS.md | P1 | Link from README and project board |
-| WK3-007 | JWT Spike Doc | Prepare JWT spike decision doc (pros/cons, migration plan) | P2 | Link from README and project board |
+| WK3-004 | Migration Test in CI | Ensure migration test runs in CI using Testcontainers/Postgres | P1 | Deferred under BACKEND_CI_GUARD; evaluate adding profile/matrix next week |
+| WK3-005 | Unit Test Coverage | Add/improve unit tests for UserService, SessionService, password validator (≥75%) | P1 | Current gate 70% passing; raise to 75% after adding tests |
 
 ---
 ## Versioning & Continuous Delivery Checklist
