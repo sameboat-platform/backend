@@ -12,7 +12,7 @@ public record RegisterRequest(
         @jakarta.validation.constraints.NotBlank
         @jakarta.validation.constraints.Size(min = 8, max = 100)
         @jakarta.validation.constraints.Pattern(
-                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
                 message = "password must be at least 8 characters and include upper, lower, and digit")
         String password,
         @jakarta.validation.constraints.Size(min = 2, max = 50) String displayName
