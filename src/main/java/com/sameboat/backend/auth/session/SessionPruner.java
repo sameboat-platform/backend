@@ -20,28 +20,37 @@ import java.time.ZoneOffset;
 public class SessionPruner {
     private static final Logger log = LoggerFactory.getLogger(SessionPruner.class);
 
-    private final SessionRepository sessionRepository;
-    // Lazily-injected self proxy to ensure @Transactional is applied when invoked from scheduled method
-    private final ObjectProvider<SessionPruner> self;
+    private final SessionPruneService sessionPruneService;
 
-    public SessionPruner(SessionRepository sessionRepository, @Lazy ObjectProvider<SessionPruner> self) {
-        this.sessionRepository = sessionRepository;
-        this.self = self;
+    public SessionPruner(SessionPruneService sessionPruneService) {
+        this.sessionPruneService = sessionPruneService;
     }
 
-    @Scheduled(fixedRateString = "PT1H", initialDelayString = "PT2M")
+    @Scheduled(fixedDelayString = "PT1H", initialDelayString = "PT2M")
     public void scheduledPrune() {
-        // Call through proxy so @Transactional on pruneNow() is honored
-        self.getObject().pruneNow();
+        sessionPruneService.pruneNow();
     }
 
-    @Transactional
-    public long pruneNow() {
-        var now = OffsetDateTime.now(ZoneOffset.UTC);
-        long deleted = sessionRepository.deleteExpiredSessions(now);
-        if (deleted > 0) {
-            log.info("SessionPruner deleted {} expired sessions", deleted);
+    /**
+     * Service to handle transactional session pruning.
+     */
+    @Component
+    public static class SessionPruneService {
+        private static final Logger log = LoggerFactory.getLogger(SessionPruneService.class);
+        private final SessionRepository sessionRepository;
+
+        public SessionPruneService(SessionRepository sessionRepository) {
+            this.sessionRepository = sessionRepository;
         }
-        return deleted;
+
+        @Transactional
+        public long pruneNow() {
+            var now = OffsetDateTime.now(ZoneOffset.UTC);
+            long deleted = sessionRepository.deleteExpiredSessions(now);
+            if (deleted > 0) {
+                log.info("SessionPruner deleted {} expired sessions", deleted);
+            }
+            return deleted;
+        }
     }
 }
