@@ -25,7 +25,7 @@ class RateLimitingIntegrationTest {
         // The test user 'ratelimit@example.com' is auto-created by the test profile with password 'dev'.
         // We use an incorrect password ('NotTheStub123') to trigger failed login attempts.
         String email = "ratelimit@example.com";
-        String badJson = "{\"email\":\"" + email + "\",\"password\":\"NotTheStub123\"}"; // intentionally incorrect
+        String badJson = "{\"email\":\"ratelimit@example.com\",\"password\":\"NotTheStub123\"}"; // intentionally incorrect
         // First 4 should be BAD_CREDENTIALS (401)
         for (int i = 0; i < 4; i++) {
             mvc.perform(post("/auth/login")
