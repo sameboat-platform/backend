@@ -24,7 +24,7 @@ class RateLimitingIntegrationTest {
     void loginRateLimited() throws Exception {
         // The test user 'ratelimit@example.com' is auto-created by the test profile with password 'dev'.
         // We use an incorrect password ('NotTheStub123') to trigger failed login attempts.
-        final String STUB_PASSWORD = "dev";
+        String email = "ratelimit@example.com";
         String badJson = "{\"email\":\"" + email + "\",\"password\":\"NotTheStub123\"}"; // intentionally incorrect
         // First 4 should be BAD_CREDENTIALS (401)
         for (int i = 0; i < 4; i++) {
@@ -48,4 +48,3 @@ class RateLimitingIntegrationTest {
                 .andExpect(jsonPath("$.error").value("RATE_LIMITED"));
     }
 }
-
