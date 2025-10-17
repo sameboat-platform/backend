@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SessionPrunerIntegrationTest {
 
     @Autowired SessionRepository sessionRepository;
-    @Autowired SessionPruner pruner;
+    @Autowired SessionPruner.SessionPruneService pruneService;
 
     @Test
     @DisplayName("SessionPruner deletes expired sessions and keeps valid ones")
@@ -43,7 +43,7 @@ class SessionPrunerIntegrationTest {
         sessionRepository.save(valid);
 
         assertThat(sessionRepository.count()).isEqualTo(2);
-        long deleted = pruner.pruneNow();
+        long deleted = pruneService.pruneNow();
         assertThat(deleted).isEqualTo(1);
         assertThat(sessionRepository.count()).isEqualTo(1);
         assertThat(sessionRepository.findById(valid.getId())).isPresent();

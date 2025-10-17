@@ -1,9 +1,5 @@
 package com.sameboat.backend.auth.session;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +14,6 @@ import java.time.ZoneOffset;
  */
 @Component
 public class SessionPruner {
-    private static final Logger log = LoggerFactory.getLogger(SessionPruner.class);
 
     private final SessionPruneService sessionPruneService;
 
@@ -26,6 +21,11 @@ public class SessionPruner {
         this.sessionPruneService = sessionPruneService;
     }
 
+    /**
+     * Prunes expired sessions from the database.
+     * Runs every hour, starting 2 minutes after application start.
+     * // TODO: Externalize schedule timing to application.yml if environment tuning needed
+     */
     @Scheduled(fixedDelayString = "PT1H", initialDelayString = "PT2M")
     public void scheduledPrune() {
         sessionPruneService.pruneNow();
@@ -36,7 +36,6 @@ public class SessionPruner {
      */
     @Component
     public static class SessionPruneService {
-        private static final Logger log = LoggerFactory.getLogger(SessionPruneService.class);
         private final SessionRepository sessionRepository;
 
         public SessionPruneService(SessionRepository sessionRepository) {
@@ -46,11 +45,7 @@ public class SessionPruner {
         @Transactional
         public long pruneNow() {
             var now = OffsetDateTime.now(ZoneOffset.UTC);
-            long deleted = sessionRepository.deleteExpiredSessions(now);
-            if (deleted > 0) {
-                log.info("SessionPruner deleted {} expired sessions", deleted);
-            }
-            return deleted;
+            return sessionRepository.deleteExpiredSessions(now);
         }
     }
 }
