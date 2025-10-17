@@ -22,8 +22,10 @@ class RateLimitingIntegrationTest {
     @Test
     @DisplayName("Login rate limit triggers 429 after 5 failed attempts")
     void loginRateLimited() throws Exception {
-        String email = "ratelimit@example.com";
-        String badJson = "{\"email\":\"" + email + "\",\"password\":\"NotTheStub123\"}"; // not 'dev'
+        // The test user 'ratelimit@example.com' is auto-created by the test profile with password 'dev'.
+        // We use an incorrect password ('NotTheStub123') to trigger failed login attempts.
+        final String STUB_PASSWORD = "dev";
+        String badJson = "{\"email\":\"" + email + "\",\"password\":\"NotTheStub123\"}"; // intentionally incorrect
         // First 4 should be BAD_CREDENTIALS (401)
         for (int i = 0; i < 4; i++) {
             mvc.perform(post("/auth/login")
