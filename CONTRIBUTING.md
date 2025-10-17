@@ -41,11 +41,12 @@ Maintain ≥ 70% instruction coverage (Jacoco gate enforces this during `mvn ver
 
 ## 7. Error Handling & Codes
 Use / extend centralized handler `GlobalExceptionHandler`.
-Existing codes: VALIDATION_ERROR, BAD_REQUEST, BAD_CREDENTIALS, UNAUTHENTICATED, SESSION_EXPIRED, INTERNAL_ERROR.
+Existing codes: VALIDATION_ERROR, BAD_REQUEST, BAD_CREDENTIALS, UNAUTHENTICATED, SESSION_EXPIRED, RATE_LIMITED, INTERNAL_ERROR.
 Add new domain exceptions + codes only with accompanying tests and update the catalog in `copilot-instructions.md` section 21.
 
 ## 8. Security (SECURITY_BASELINE)
 - Validate all request DTOs (Jakarta Bean Validation).
+- Enforce password complexity for registration: min 8 chars and must include upper, lower, and digit.
 - Avoid exposing sensitive internal details in error messages.
 - Never log secrets or raw tokens.
 - Enforce least privilege (avoid broad queries when specific ones suffice).

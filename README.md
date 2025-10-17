@@ -8,7 +8,7 @@
 > git remote set-url origin git@github.com:sameboat-platform/sameboat-backend.git
 > ```
 
-> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Week 3 Plan](./docs/weekly-plan/week-3/week-3-plan.md) | [Contributing](./CONTRIBUTING.md) | Guard Rails: [Copilot Instructions](.github/copilot-instructions.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
+> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Risks](./docs/RISKS.md) | [JWT vs Extended Sessions (Spike)](./docs/spikes/jwt_vs_extended_sessions.md) | [Week 3 Plan](./docs/weekly-plan/week-3/week-3-plan.md) | [Contributing](./CONTRIBUTING.md) | Guard Rails: [Copilot Instructions](.github/copilot-instructions.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
 
 ## Getting Started (Contributors)
 Before writing code or using AI assistance:
@@ -187,6 +187,8 @@ Opaque session cookie `SBSESSION=<UUID>` (alias accepted: `sb_session`) issued o
 `POST /auth/login` (also `/api/auth/login`): returns full user envelope `{ "user": { ... } }`.
 - If `sameboat.auth.dev-auto-create=true` (test/dev), a non‑existent user with stub password is auto-created.
 - Passwords are stored with **BCrypt** (Spring `BCryptPasswordEncoder`).
+- Password complexity enforced: min 8 chars, must include upper, lower, and digit.
+- Login attempts are rate limited; excessive failures return `RATE_LIMITED` (HTTP 429).
 
 ### Logout
 `POST /auth/logout` clears server session and sends an expired cookie.
@@ -201,7 +203,7 @@ All non-2xx errors:
 ```json
 { "error": "<CODE>", "message": "Human readable explanation" }
 ```
-Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`, `VALIDATION_ERROR`, `BAD_REQUEST`, `INTERNAL_ERROR`.
+Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`, `VALIDATION_ERROR`, `BAD_REQUEST`, `RATE_LIMITED`, `INTERNAL_ERROR`.
 
 | Code | Typical Trigger |
 |------|-----------------|
@@ -211,6 +213,7 @@ Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_E
 | EMAIL_EXISTS | Duplicate registration attempt |
 | VALIDATION_ERROR | Bean validation (fields, sizes, empty patch body) |
 | BAD_REQUEST | Explicit IllegalArgument / future semantics |
+| RATE_LIMITED | Too many requests (e.g., repeated failed logins) |
 | INTERNAL_ERROR | Uncaught exception (trace id logged) |
 
 ## Quality Gates
@@ -255,15 +258,15 @@ Use any HTTP client or browser:
 
 ## Sample cURL
 ```bash
-# Register
+# Register (password must include upper, lower, digit and be >= 8 chars)
 curl -i -X POST http://localhost:8080/auth/register \
   -H 'Content-Type: application/json' \
-  -d '{"email":"dev@example.com","password":"abcdef","displayName":"Dev"}'
+  -d '{"email":"dev@example.com","password":"Abcdef12","displayName":"Dev"}'
 
 # Login
 curl -i -X POST http://localhost:8080/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"dev@example.com","password":"abcdef"}'
+  -d '{"email":"dev@example.com","password":"Abcdef12"}'
 
 # Use cookie
 curl -i http://localhost:8080/me -H 'Cookie: SBSESSION=<uuid>'

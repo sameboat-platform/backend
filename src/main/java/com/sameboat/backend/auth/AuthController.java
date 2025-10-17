@@ -34,12 +34,14 @@ public class AuthController {
     private final SessionService sessionService;
     private final PasswordEncoder passwordEncoder;
     private final SameboatProperties props;
+    private final RateLimiterService rateLimiter;
 
-    public AuthController(UserService userService, SessionService sessionService, PasswordEncoder passwordEncoder, SameboatProperties props) {
+    public AuthController(UserService userService, SessionService sessionService, PasswordEncoder passwordEncoder, SameboatProperties props, RateLimiterService rateLimiter) {
         this.userService = userService;
         this.sessionService = sessionService;
         this.passwordEncoder = passwordEncoder;
         this.props = props;
+        this.rateLimiter = rateLimiter;
     }
 
     /** Builds a configured session cookie with security attributes. */
@@ -61,6 +63,18 @@ public class AuthController {
         log.info("Login failed email={} (bad credentials)", email);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse("BAD_CREDENTIALS", "Email or password is incorrect"));
+    }
+
+    /** Convenience builder for a uniform rate limited response. */
+    private ResponseEntity<ErrorResponse> rateLimited(String key) {
+        return ResponseEntity.status(429)
+                .body(new ErrorResponse("RATE_LIMITED", "Too many attempts; try again later"));
+    }
+
+    /** Build a rate key using normalized email + client ip if available. */
+    private String rateKey(String emailNorm, jakarta.servlet.http.HttpServletRequest request) {
+        String ip = request != null ? request.getRemoteAddr() : "";
+        return emailNorm + "|" + ip;
     }
 
     /**
@@ -89,8 +103,15 @@ public class AuthController {
      * user if configured. Issues a fresh session cookie on success.
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid com.sameboat.backend.auth.dto.LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody @Valid com.sameboat.backend.auth.dto.LoginRequest request,
+                                   jakarta.servlet.http.HttpServletRequest httpRequest,
+                                   HttpServletResponse response) {
         String emailNorm = userService.normalizeEmail(request.email());
+        String key = rateKey(emailNorm, httpRequest);
+        if (rateLimiter.isLimited(key)) {
+            log.info("Login attempt blocked by rate limiter for key={}", key);
+            return rateLimited(key);
+        }
         var userOpt = userService.getByEmailNormalized(emailNorm);
         var authCfg = props.getAuth();
         if (userOpt.isEmpty()) {
@@ -99,17 +120,25 @@ public class AuthController {
                 var created = userService.registerNew(emailNorm, request.password(), passwordEncoder);
                 var session = sessionService.createSession(created.getId(), java.time.Duration.ofDays(props.getSession().getTtlDays()));
                 response.addCookie(buildSessionCookie(session.getId().toString()));
+                rateLimiter.reset(key);
                 return ResponseEntity.ok(new LoginResponse(com.sameboat.backend.user.UserMapper.toDto(created)));
+            }
+            if (rateLimiter.recordFailure(key)) {
+                return rateLimited(key);
             }
             return badCredentials(emailNorm);
         }
         var user = userOpt.get();
         if (!userService.passwordMatches(user, request.password(), passwordEncoder)) {
+            if (rateLimiter.recordFailure(key)) {
+                return rateLimited(key);
+            }
             return badCredentials(emailNorm);
         }
         var session = sessionService.createSession(user.getId(), java.time.Duration.ofDays(props.getSession().getTtlDays()));
         log.info("Login success userId={} email={} sessionId={}", user.getId(), user.getEmail(), session.getId());
         response.addCookie(buildSessionCookie(session.getId().toString()));
+        rateLimiter.reset(key);
         return ResponseEntity.ok(new LoginResponse(com.sameboat.backend.user.UserMapper.toDto(user)));
     }
 
