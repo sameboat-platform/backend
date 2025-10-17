@@ -29,7 +29,7 @@ public class SessionPruner {
         this.self = self;
     }
 
-    @Scheduled(fixedDelayString = "PT1H", initialDelayString = "PT2M")
+    @Scheduled(fixedRateString = "PT1H", initialDelayString = "PT2M")
     public void scheduledPrune() {
         // Call through proxy so @Transactional on pruneNow() is honored
         self.getObject().pruneNow();
