@@ -130,6 +130,18 @@ Responses:
 - 400 Validation error → `VALIDATION_ERROR`
 - 401 If not authenticated / expired (distinct codes as above)
 
+## Public Utility
+### GET /api/version
+Returns the deployed backend version. Public and unauthenticated.
+
+Success (200):
+```json
+{ "version": "0.1.0" }
+```
+
+Notes:
+- In production, the value reflects the JAR manifest when available; falls back to `project.version` during development/test.
+
 ## Error Handling Summary
 | Scenario | Status | error code | Notes |
 |----------|--------|------------|-------|
