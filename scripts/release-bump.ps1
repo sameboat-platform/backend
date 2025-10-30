@@ -13,6 +13,7 @@ if (Select-String -Path CHANGELOG.md -Pattern '\[Unreleased\]:') {
 }
 & git add pom.xml CHANGELOG.md
 & git commit -m "chore(release): v$NewVersion"
+if (git rev-parse "v$NewVersion" 2>$null) { Write-Error "Tag v$NewVersion already exists"; exit 1 }
 & git tag -a "v$NewVersion" -m "Release v$NewVersion"
 Write-Output "Version bumped to $NewVersion. Next: push branch + tag."
 
