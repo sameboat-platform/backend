@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 /**
  * Provides the application-wide {@link PasswordEncoder}. BCrypt is chosen for
  * adaptive hashing so strength can be increased over time.
+ * @author ArchILLtect
  */
 @Configuration
 public class PasswordEncoderConfig {

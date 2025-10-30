@@ -36,6 +36,14 @@ public class AuthController {
     private final SameboatProperties props;
     private final RateLimiterService rateLimiter;
 
+    /**
+     * Constructor with dependencies injected.
+     * @param userService             the service managing user accounts
+     * @param sessionService        the service managing user sessions
+     * @param passwordEncoder   the password encoder for hashing and verifying passwords
+     * @param props                      application configuration properties
+     * @param rateLimiter              the rate limiter service for login attempts
+     */
     public AuthController(UserService userService, SessionService sessionService, PasswordEncoder passwordEncoder, SameboatProperties props, RateLimiterService rateLimiter) {
         this.userService = userService;
         this.sessionService = sessionService;
@@ -44,7 +52,11 @@ public class AuthController {
         this.rateLimiter = rateLimiter;
     }
 
-    /** Builds a configured session cookie with security attributes. */
+    /**
+     * Builds the session cookie with appropriate attributes.
+     * @param token the session token value
+     * @return  the constructed Cookie object
+     */
     private Cookie buildSessionCookie(String token) {
         var sessionCfg = props.getSession();
         var cookieCfg = props.getCookie();
@@ -58,20 +70,34 @@ public class AuthController {
         return cookie;
     }
 
-    /** Convenience builder for a uniform bad credentials response with logging. */
+    /**
+     * Convenience builder for a uniform bad credentials response.
+     * @param email the email used in the failed login attempt
+     * @return  the ResponseEntity with error details
+     */
     private ResponseEntity<ErrorResponse> badCredentials(String email) {
         log.info("Login failed email={} (bad credentials)", email);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse("BAD_CREDENTIALS", "Email or password is incorrect"));
     }
 
-    /** Convenience builder for a uniform rate limited response. */
+    /**
+     * Convenience builder for a rate limited response.
+     * @param key the rate limit key that was exceeded
+     * @return  the ResponseEntity with error details
+     */
     private ResponseEntity<ErrorResponse> rateLimited(String key) {
+        log.info("Rate limited response for key={}", key);
         return ResponseEntity.status(429)
                 .body(new ErrorResponse("RATE_LIMITED", "Too many attempts; try again later"));
     }
 
-    /** Build a rate key using normalized email + client ip if available. */
+    /**
+     * Builds a rate limiting key based on normalized email and request IP.
+     * @param emailNorm the normalized email address
+     * @param request   the HTTP servlet request
+     * @return  the constructed rate limit key
+     */
     private String rateKey(String emailNorm, jakarta.servlet.http.HttpServletRequest request) {
         String ip = request != null ? request.getRemoteAddr() : "";
         return emailNorm + "|" + ip;
@@ -80,6 +106,9 @@ public class AuthController {
     /**
      * Registers a new user account (unless email already exists) and immediately
      * creates a session, returning the new user id plus issuing the cookie.
+     * @param request   the registration request payload
+     * @param response  the HTTP servlet response to add the session cookie to
+     * @return          the ResponseEntity with new user id or error details
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request, HttpServletResponse response) {
@@ -101,6 +130,10 @@ public class AuthController {
     /**
      * Authenticates a user by email + password, optionally auto-creating a dev
      * user if configured. Issues a fresh session cookie on success.
+     * @param request       the login request payload
+     * @param httpRequest   the HTTP servlet request for rate limiting info
+     * @param response      the HTTP servlet response to add the session cookie to
+     * @return              the ResponseEntity with user details or error info
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid com.sameboat.backend.auth.dto.LoginRequest request,
@@ -109,7 +142,6 @@ public class AuthController {
         String emailNorm = userService.normalizeEmail(request.email());
         String key = rateKey(emailNorm, httpRequest);
         if (rateLimiter.isLimited(key)) {
-            log.info("Login attempt blocked by rate limiter for key={}", key);
             return rateLimited(key);
         }
         var userOpt = userService.getByEmailNormalized(emailNorm);
@@ -144,6 +176,9 @@ public class AuthController {
 
     /**
      * Logs out the current session (if present) and expires the cookie.
+     * @param token     the session token from the SBSESSION cookie
+     * @param response  the HTTP servlet response to add the expired cookie to
+     * @return          the ResponseEntity indicating no content
      */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(value = "SBSESSION", required = false) String token, HttpServletResponse response) {
