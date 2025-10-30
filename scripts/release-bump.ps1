@@ -1,6 +1,10 @@
 param(
   [Parameter(Mandatory=$true)][string]$NewVersion
 )
+if ($NewVersion -notmatch '^\d+\.\d+\.\d+$') {
+  Write-Error "Invalid version format. Expected: X.Y.Z"
+  exit 1
+}
 # Update pom.xml version using Maven's built-in versioning
 & mvn versions:set -DnewVersion=$NewVersion -DgenerateBackupPoms=false
 # Update CHANGELOG compare link
