@@ -5,9 +5,8 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 NEWVER="$1"
-# Update pom.xml version
-sed -i.bak -E "s|(<version>)[0-9]+\.[0-9]+\.[0-9]+(</version>)|\1${NEWVER}\2|" pom.xml
-rm -f pom.xml.bak
+# Update pom.xml version (safe: only project version)
+./mvnw versions:set -DnewVersion="${NEWVER}" -DgenerateBackupPoms=false
 # Update CHANGELOG compare link Unreleased -> new version
 if grep -q "\[Unreleased\]:" CHANGELOG.md; then
   sed -i.bak -E "s|(\[Unreleased\]: .*compare/)(v[0-9]+\.[0-9]+\.[0-9]+)(\.\.\.HEAD)|\1v${NEWVER}\3|" CHANGELOG.md || true
