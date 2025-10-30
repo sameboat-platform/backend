@@ -8,6 +8,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.sameboat.backend.common.ResourceNotFoundException;
+
 /**
  * Application service providing user-centric operations such as registration,
  * credential verification, profile partial updates and normalized lookups.
@@ -53,6 +55,11 @@ public class UserService {
 
     /** Finds a user by id. */
     public Optional<UserEntity> findById(UUID id) { return repository.findById(id); }
+
+    /** Gets a user by id or throws ResourceNotFoundException. */
+    public UserEntity getByIdOrThrow(UUID id) {
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
 
     /** Case-insensitive email lookup (expects already-normalized input). */
     public Optional<UserEntity> findByEmail(String email) {
