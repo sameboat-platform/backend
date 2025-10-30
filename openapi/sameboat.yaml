@@ -9,3 +9,48 @@ paths:
       responses:
         '200':
           description: OK
+  /api/version:
+    get:
+      summary: API version
+      description: Returns the deployed backend version.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Stable error code
+          enum:
+            - UNAUTHENTICATED
+            - BAD_CREDENTIALS
+            - SESSION_EXPIRED
+            - VALIDATION_ERROR
+            - BAD_REQUEST
+            - RATE_LIMITED
+            - INTERNAL_ERROR
+            - NOT_FOUND
+        message:
+          type: string
+          description: Human-readable error message
+      required: [error, message]
+    VersionResponse:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Semantic version of the deployed backend
+      required: [version]
