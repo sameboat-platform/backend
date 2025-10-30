@@ -16,6 +16,9 @@ import java.util.List;
  * Registers a permissive CORS configuration constrained to the allowed origins
  * declared in {@link SameboatProperties.Cors}. Credentials are enabled so the
  * session cookie can be transmitted by browsers.
+ * @see SameboatProperties
+ * @author ArchILLtect
+ *
  */
 @Configuration
 public class CorsConfig {
@@ -23,18 +26,23 @@ public class CorsConfig {
     private final SameboatProperties props;
     private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
 
+    // Constructor with injected SameboatProperties
     public CorsConfig(SameboatProperties props) { this.props = props; }
 
+    /**
+     * Defines the CORS configuration source bean.
+     * @return the CorsConfigurationSource with allowed origins and settings
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        for (String origin : props.getCors().getAllowedOrigins()) {
-            String o = origin.trim();
-            if (o.isEmpty()) continue;
-            if (o.contains("*")) {
-                cfg.addAllowedOriginPattern(o);
+        for (String rawOrigin : props.getCors().getAllowedOrigins()) {
+            String origin = rawOrigin.trim();
+            if (origin.isEmpty()) continue;
+            if (origin.contains("*")) {
+                cfg.addAllowedOriginPattern(origin);
             } else {
-                cfg.addAllowedOrigin(o);
+                cfg.addAllowedOrigin(origin);
             }
         }
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));

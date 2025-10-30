@@ -16,6 +16,27 @@ Theme (Proposed): Quality hardening, accessibility polish, developer ergonomics,
 | Visual polish (avatars)               | Clarity in demos                  | Deterministic identicon fallback implemented                 |
 | Session freshness                     | Better long-lived tab UX          | Visibility change triggers conditional refresh               |
 
+## Week 4 Status Checklist (as of 2025-10-29)
+
+Notes:
+- This repository is the backend (Spring Boot). Several Week 4 items target the frontend app (Vite/React) and its CI; those remain pending here and should be tracked/completed in the frontend repo.
+- BACKEND_CI_GUARD respected: main backend CI workflow exists at `.github/workflows/backend-ci.yml`.
+
+Done
+- [x] Environment onboarding (backend scope): `.env.example` is present at repo root and referenced in README “Run locally” section (copy `.env.example` → `.env`).
+- [x] CI (backend scope): Backend CI already runs tests (`mvn verify`) and fails on red; coverage gate enforced (JaCoCo ≥ 70%).
+
+Left (to be completed, mostly frontend scope unless noted)
+- [ ] Testing & CI (frontend): Add `npm test` step to the frontend CI (`frontend-ci.yml`) before build; add routing/auth UI tests listed below.
+- [ ] Health polling resilience (frontend): pause-on-error, exponential backoff, debug surface for failure streak/last success.
+- [ ] Accessibility / Motion control (frontend): central reduced‑motion preference, gate animations, document approach in `Architecture.md` (Week 4 section).
+- [ ] Developer control utilities (frontend): debug panel interval override, failure/backoff display, “Force full auth refresh” button.
+- [ ] Visual / UX polish (frontend): deterministic identicon fallback, copy‑to‑clipboard user ID, spacing sweep.
+- [ ] Session freshness (frontend): `visibilitychange`-based conditional refresh with overlap safeguards.
+- [ ] Documentation: Add Week 4 summary in `docs/Architecture.md`; update any week‑3 links if metrics scripts change; consider short CHANGELOG segment if scope grows.
+
+---
+
 ## Detailed Tasks (Initial Backlog)
 
 ### 1. Testing & CI

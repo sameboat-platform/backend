@@ -11,14 +11,14 @@ public class VersionController {
 
     public VersionController(Environment env) {
         // Try to get Implementation-Version from MANIFEST.MF
-        String v = null;
+        String version = null;
         try {
-            v = getClass().getPackage().getImplementationVersion();
+            version = getClass().getPackage().getImplementationVersion();
         } catch (Exception ignored) {}
-        if (v == null || v.isBlank()) {
-            v = env.getProperty("project.version", "unknown");
+        if (version == null || version.isBlank()) {
+            version = env.getProperty("project.version", "unknown");
         }
-        this.version = v;
+        this.version = version;
     }
 
     @GetMapping("/api/version")

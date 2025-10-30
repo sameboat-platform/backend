@@ -48,3 +48,9 @@ SAMEBOAT_CORS_ALLOWED_ORIGINS=https://app.sameboatplatform.org
 - Potential WAF / distributed rate limiting (e.g., Redis) for multi-instance auth endpoints.
 
 ---
+
+## Week 4 Backend Summary
+- Introduced `ResourceNotFoundException` mapped to HTTP 404 with error code `NOT_FOUND` via `GlobalExceptionHandler`.
+- Standardized controller 404 behavior by adding service method `UserService.getByIdOrThrow(UUID)` and using it in `GET /users/{id}`.
+- Added focused tests: service throws `ResourceNotFoundException`; WebMvc test asserts 404 NOT_FOUND envelope; BAD_REQUEST mapping asserted for `IllegalArgumentException`.
+- Synced OpenAPI (`openapi/sameboat.yaml`) to include `/api/version` and the error envelope schema with current error codes.

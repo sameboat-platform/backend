@@ -10,6 +10,8 @@ import lombok.Setter;
  * Strongly typed configuration properties for the SameBoat application grouped under the
  * prefix {@code sameboat}. Provides structured access to authentication, session, CORS and
  * cookie settings.
+ * @see <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties.bindings">Spring Boot Configuration Properties</a>
+ * @author ArchILLtect
  */
 @Validated
 @ConfigurationProperties(prefix = "sameboat")

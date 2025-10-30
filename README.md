@@ -8,7 +8,13 @@
 > git remote set-url origin git@github.com:sameboat-platform/sameboat-backend.git
 > ```
 
-> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Risks](./docs/RISKS.md) | [JWT vs Extended Sessions (Spike)](./docs/spikes/jwt_vs_extended_sessions.md) | [Week 3 Plan](./docs/weekly-plan/week-3/week-3-plan.md) | [Contributing](./CONTRIBUTING.md) | Guard Rails: [Copilot Instructions](.github/copilot-instructions.md) | Journals: [Index](./docs/journals/README.md) · [Week 1](./docs/journals/Week1-Journal.md) · [Week 2](./docs/journals/Week2-Journal.md)
+> Quick Links: [Instructions (setup & migrations)](./docs/instructions.md) | [API Reference](./docs/api.md) | [Risks](./docs/RISKS.md) | [JWT vs Extended Sessions (Spike)](./docs/spikes/jwt_vs_extended_sessions.md) | [Week 4 Plan (Backend)](./docs/weekly-plan/week-4/week-4-plan-backend.md) | [Week 4 Checkout (Backend)](./docs/weekly-plan/week-4/week-4-checkout-backend.md) | [Contributing](./CONTRIBUTING.md) | Guard Rails: [Copilot Instructions](.github/copilot-instructions.md) | Journals: [Index](./docs/journals/README.md)
+
+## Week 4 Highlights
+- Standardized NOT_FOUND: added `ResourceNotFoundException` and mapped to HTTP 404 with error `NOT_FOUND` in the global handler; service throws, controllers stay thin.
+- BAD_REQUEST mapping: focused WebMvc test covering `IllegalArgumentException` → `{ "error": "BAD_REQUEST" }`.
+- OpenAPI sync: spec now includes `/api/version` and a reusable `ErrorResponse` schema enumerating current error codes.
+- Future endpoint (gated): added a hardened `GET /users/{id}` returning `PublicUserDto` (no email). It’s disabled by default and only enabled when `sameboat.endpoints.user-read=true`; access allowed to self or `ADMIN`.
 
 ## Getting Started (Contributors)
 Before writing code or using AI assistance:
@@ -35,6 +41,11 @@ Alias Tokens (for AI prompts): `BACKEND_CI_GUARD`, `LAYER_RULE`, `SECURITY_BASEL
 4. Health checks (both are public):
    - `GET /health` → 200 OK (custom simple health)
    - `GET /actuator/health` → 200 OK and `{ "status": "UP" }`
+
+Windows note: prefer `mvn` (not the wrapper) when running multiple CLI properties in one go; wrap all flags in double quotes in cmd.exe, for example:
+```cmd
+mvn "-Dskip.migration.test=false" verify
+```
 
 ### Container (Docker) Usage
 A multi-stage Dockerfile is provided for local testing and Render deployment.
@@ -203,7 +214,7 @@ All non-2xx errors:
 ```json
 { "error": "<CODE>", "message": "Human readable explanation" }
 ```
-Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`, `VALIDATION_ERROR`, `BAD_REQUEST`, `RATE_LIMITED`, `INTERNAL_ERROR`.
+Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_EXISTS`, `VALIDATION_ERROR`, `BAD_REQUEST`, `RATE_LIMITED`, `NOT_FOUND`, `INTERNAL_ERROR`.
 
 | Code | Typical Trigger |
 |------|-----------------|
@@ -214,6 +225,7 @@ Current codes: `UNAUTHENTICATED`, `BAD_CREDENTIALS`, `SESSION_EXPIRED`, `EMAIL_E
 | VALIDATION_ERROR | Bean validation (fields, sizes, empty patch body) |
 | BAD_REQUEST | Explicit IllegalArgument / future semantics |
 | RATE_LIMITED | Too many requests (e.g., repeated failed logins) |
+| NOT_FOUND | Requested resource doesn’t exist (service throws `ResourceNotFoundException`) |
 | INTERNAL_ERROR | Uncaught exception (trace id logged) |
 
 ## Quality Gates
