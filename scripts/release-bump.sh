@@ -5,6 +5,11 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 NEWVER="$1"
+# Validate semantic version format (X.Y.Z)
+if ! [[ "$NEWVER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Invalid version format: '$NEWVER'. Must match X.Y.Z (e.g., 1.2.3)" >&2
+  exit 1
+fi
 # Update pom.xml version (safe: only project version)
 ./mvnw versions:set -DnewVersion="${NEWVER}" -DgenerateBackupPoms=false
 # Update CHANGELOG compare link Unreleased -> new version
