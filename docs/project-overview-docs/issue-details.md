@@ -1,11 +1,10 @@
-
 Backend Repo Issue and PR Labels
 ===============================
 This document outlines the labels used for issues and pull requests in the backend repository. These labels help categorize and prioritize work, making it easier for contributors and maintainers to manage tasks effectively.
 
-Total Labels: 32
+Total Labels: 33
 
-### Area/Scope Labels (7)
+### Area/Scope Labels (8)
 - **area:auth**: Issues/PRs related to authentication, login, registration, and session management. (Color: #008000)
 - **area:health**: Issues/PRs related to health checks, monitoring, and system status endpoints. (Color: #800000)
 - **area:release**: Issues/PRs related to release process, versioning, and deployment automation. (Color: #000000)
@@ -13,6 +12,7 @@ Total Labels: 32
 - **area:project**: Issues/PRs related to project management, milestones, and planning. (Color: #43b581)
 - **area:runtime**: Issues/PRs related to runtime configuration, environment, and profile switching. (Color: #a97bff)
 - **area:db**: Issues/PRs related to database schema, migrations, and persistence. (Color: #9babde)
+- **area:stories**: Issues/PRs related to the Stories domain (entity, repository, service, controller, feed, deletion). (Color: #1e90ff)
 
 ### Type Labels (5)
 - **type:docs**: Documentation for types, DTOs, or API contracts. (Color: #43b581)
