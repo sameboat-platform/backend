@@ -131,6 +131,15 @@
                     <include>application.properties</include>
                 </includes>
             </resource>
+            <!-- NEW: ensure YAML profile files are packaged -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>application.yml</include>
+                    <include>application-*.yml</include>
+                </includes>
+            </resource>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
