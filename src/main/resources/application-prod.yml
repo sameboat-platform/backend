@@ -16,15 +16,17 @@ sameboat:
   cors:
     # Authoritative SPA origin(s). Remove Netlify once fully cut over.
     allowed-origins:
-      - https://sameboatplatform.org
-      - https://www.sameboatplatform.org
+      - https://sameboatplatform.com
+      - https://www.sameboatplatform.com
+      - https://sameboatplatform.org  # kept for reference; not needed due to cookie domain
+      - https://www.sameboatplatform.org  # kept for reference; not needed due to cookie domain
       - https://app.sameboatplatform.org
       - https://app-sameboat.netlify.app  # TEMP fallback; remove when deprecated
       - https://deploy-preview-*--app-sameboat.netlify.app  # allow all Netlify PR preview URLs for this site only
 
   cookie:
     secure: true
-    domain: .sameboatplatform.org
+    domain: .sameboatplatform.com
   session:
     ttl-days: 14  # Keep in file so SAMEBOAT_SESSION_TTL_DAYS env var can be removed
 
