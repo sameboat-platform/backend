@@ -17,7 +17,7 @@ public record RegisterRequest(
         @NotBlank
         @Size(min = 8, max = 100)
         @Pattern(
-                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?!.*\\s).*$",
+                regexp = "^(?!.*\\s)(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
                 message = "password must be 8-100 chars, include upper, lower, digit, and contain no spaces")
         String password,
         @Size(min = 2, max = 50) String displayName

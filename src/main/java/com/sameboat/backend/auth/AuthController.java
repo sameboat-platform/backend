@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -53,12 +54,30 @@ public class AuthController {
         this.rateLimiter = rateLimiter;
     }
 
+    private String resolveCookieDomain(jakarta.servlet.http.HttpServletRequest request) {
+        String explicit = props.getCookie().getDomain();
+        if (explicit != null && !explicit.isBlank()) {
+            // Defensive: strip leading dot if present
+            return explicit.startsWith(".") ? explicit.substring(1) : explicit;
+        }
+        String forwarded = request != null ? request.getHeader("X-Forwarded-Host") : null;
+        String host = (forwarded != null && !forwarded.isBlank()) ? forwarded : (request != null ? request.getServerName() : null);
+        if (host == null || host.isBlank()) return null;
+        host = host.toLowerCase();
+        for (String apex : props.getCookie().getValidDomains()) {
+            if (host.equals(apex) || host.endsWith("." + apex)) {
+                return apex; // return apex domain without leading dot
+            }
+        }
+        return null; // default to host-only cookie
+    }
+
     /**
      * Builds the session cookie with appropriate attributes.
      * @param token the session token value
      * @return  the constructed Cookie object
      */
-    private Cookie buildSessionCookie(String token) {
+    private Cookie buildSessionCookie(String token, jakarta.servlet.http.HttpServletRequest request) {
         var sessionCfg = props.getSession();
         var cookieCfg = props.getCookie();
         Cookie cookie = new Cookie("SBSESSION", token);
@@ -67,7 +86,8 @@ public class AuthController {
         cookie.setSecure(cookieCfg.isSecure());
         cookie.setMaxAge((int) java.time.Duration.ofDays(sessionCfg.getTtlDays()).toSeconds());
         cookie.setAttribute("SameSite", "Lax");
-        if (cookieCfg.getDomain() != null && !cookieCfg.getDomain().isBlank()) cookie.setDomain(cookieCfg.getDomain());
+        String domain = resolveCookieDomain(request);
+        if (domain != null && !domain.isBlank()) cookie.setDomain(domain);
         return cookie;
     }
 
@@ -112,7 +132,8 @@ public class AuthController {
      * @return          the ResponseEntity with new user id or error details
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request, HttpServletResponse response,
+                                      jakarta.servlet.http.HttpServletRequest httpRequest) {
         String emailNorm = userService.normalizeEmail(request.email());
         if (userService.getByEmailNormalized(emailNorm).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -123,7 +144,7 @@ public class AuthController {
             user.setDisplayName(request.displayName());
         }
         var session = sessionService.createSession(user.getId(), java.time.Duration.ofDays(props.getSession().getTtlDays()));
-        response.addCookie(buildSessionCookie(session.getId().toString()));
+        response.addCookie(buildSessionCookie(session.getId().toString(), httpRequest));
         log.info("Registration success userId={} email={}", user.getId(), user.getEmail());
         return ResponseEntity.ok(Map.of("userId", user.getId().toString()));
     }
@@ -140,7 +161,25 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody @Valid com.sameboat.backend.auth.dto.LoginRequest request,
                                    jakarta.servlet.http.HttpServletRequest httpRequest,
                                    HttpServletResponse response) {
-        String emailNorm = userService.normalizeEmail(request.email());
+        return loginInternal(request.email(), request.password(), httpRequest, response);
+    }
+
+    /**
+     * Accepts classic form posts as well (application/x-www-form-urlencoded).
+     */
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<?> loginForm(@RequestParam("email") String email,
+                                       @RequestParam("password") String password,
+                                       jakarta.servlet.http.HttpServletRequest httpRequest,
+                                       HttpServletResponse response) {
+        return loginInternal(email, password, httpRequest, response);
+    }
+
+    private ResponseEntity<?> loginInternal(String emailRaw,
+                                            String passwordRaw,
+                                            jakarta.servlet.http.HttpServletRequest httpRequest,
+                                            HttpServletResponse response) {
+        String emailNorm = userService.normalizeEmail(emailRaw);
         String key = rateKey(emailNorm, httpRequest);
         if (rateLimiter.isLimited(key)) {
             return rateLimited(key);
@@ -148,13 +187,12 @@ public class AuthController {
         var userOpt = userService.getByEmailNormalized(emailNorm);
         var authCfg = props.getAuth();
         if (userOpt.isEmpty()) {
-            // extra diagnostic log to differentiate cause of 401
-            log.warn("Login failed - user not found email={}", emailNorm);
-            if (authCfg.isDevAutoCreate() && authCfg.getStubPassword().equals(request.password())) {
+            log.debug("Login failed - user not found email={}", emailNorm);
+            if (authCfg.isDevAutoCreate() && authCfg.getStubPassword().equals(passwordRaw)) {
                 log.info("Auto-creating dev user email={}", emailNorm);
-                var created = userService.registerNew(emailNorm, request.password(), passwordEncoder);
+                var created = userService.registerNew(emailNorm, passwordRaw, passwordEncoder);
                 var session = sessionService.createSession(created.getId(), java.time.Duration.ofDays(props.getSession().getTtlDays()));
-                response.addCookie(buildSessionCookie(session.getId().toString()));
+                response.addCookie(buildSessionCookie(session.getId().toString(), httpRequest));
                 rateLimiter.reset(key);
                 return ResponseEntity.ok(new LoginResponse(UserMapper.toDto(created)));
             }
@@ -164,9 +202,8 @@ public class AuthController {
             return badCredentials(emailNorm);
         }
         var user = userOpt.get();
-        if (!userService.passwordMatches(user, request.password(), passwordEncoder)) {
-            // extra diagnostic log to differentiate cause of 401
-            log.warn("Login failed - password mismatch email={}", emailNorm);
+        if (!userService.passwordMatches(user, passwordRaw, passwordEncoder)) {
+            log.debug("Login failed - password mismatch email={}", emailNorm);
             if (rateLimiter.recordFailure(key)) {
                 return rateLimited(key);
             }
@@ -174,7 +211,7 @@ public class AuthController {
         }
         var session = sessionService.createSession(user.getId(), java.time.Duration.ofDays(props.getSession().getTtlDays()));
         log.info("Login success userId={} email={} sessionId={}", user.getId(), user.getEmail(), session.getId());
-        response.addCookie(buildSessionCookie(session.getId().toString()));
+        response.addCookie(buildSessionCookie(session.getId().toString(), httpRequest));
         rateLimiter.reset(key);
         return ResponseEntity.ok(new LoginResponse(UserMapper.toDto(user)));
     }
@@ -186,7 +223,8 @@ public class AuthController {
      * @return          the ResponseEntity indicating no content
      */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@CookieValue(value = "SBSESSION", required = false) String token, HttpServletResponse response) {
+    public ResponseEntity<Void> logout(@CookieValue(value = "SBSESSION", required = false) String token, HttpServletResponse response,
+                                       jakarta.servlet.http.HttpServletRequest httpRequest) {
         if (token != null) {
             sessionService.invalidate(token);
             log.info("Logout token={}", token);
@@ -198,7 +236,8 @@ public class AuthController {
         cookie.setHttpOnly(true);
         cookie.setSecure(cookieCfg.isSecure());
         cookie.setAttribute("SameSite", "Lax");
-        if (cookieCfg.getDomain() != null && !cookieCfg.getDomain().isBlank()) cookie.setDomain(cookieCfg.getDomain());
+        String domain = resolveCookieDomain(httpRequest);
+        if (domain != null && !domain.isBlank()) cookie.setDomain(domain);
         response.addCookie(cookie);
         return ResponseEntity.noContent().build();
     }
