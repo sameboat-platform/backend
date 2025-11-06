@@ -18,28 +18,21 @@ sameboat:
     allowed-origins:
       - https://sameboatplatform.com
       - https://www.sameboatplatform.com
-      - https://sameboatplatform.org  # kept for reference; not needed due to cookie domain
-      - https://www.sameboatplatform.org  # kept for reference; not needed due to cookie domain
+      - https://sameboatplatform.org  # kept for reference
+      - https://www.sameboatplatform.org  # kept for reference
       - https://app.sameboatplatform.org
       - https://app-sameboat.netlify.app  # TEMP fallback; remove when deprecated
-      - https://deploy-preview-*--app-sameboat.netlify.app  # allow all Netlify PR preview URLs for this site only
+      - https://deploy-preview-*--app-sameboat.netlify.app
 
   cookie:
     secure: true
-    domain: .sameboatplatform.com
+    domain: ""                # leave blank -> dynamic based on (X-)Forwarded-Host against valid-domains
+    valid-domains:
+      - sameboatplatform.com
+      - sameboatplatform.org
   session:
-    ttl-days: 14  # Keep in file so SAMEBOAT_SESSION_TTL_DAYS env var can be removed
+    ttl-days: 14
 
 # Notes:
-# - The following environment variables can be deleted in Render after deploy:
-#   SAMEBOAT_COOKIE_DOMAIN, SAMEBOAT_COOKIE_SECURE, SAMEBOAT_CORS_ALLOWED_ORIGINS, SAMEBOAT_SESSION_TTL_DAYS
-# - Keep SPRING_DATASOURCE_* and SPRING_PROFILES_ACTIVE=prod.
-#
-# - Keeping https://sameboatplatform.org here for reference, but it's not needed since
-#   the cookie domain is set to .sameboatplatform.org.
-# - If you need to add more origins, be sure to update the CORS config in
-#   the frontend (vite.config.ts and src/lib/sameboat/api.ts).
-# - If you need to add more domains for the cookie, you can do so by adding
-#   them as subdomains of sameboatplatform.org (e.g., staging.sameboatplatform.org).
-#   If you need to use a completely different domain, you'll need to set up
-#   a separate deployment of the backend with its own database.
+# - Proxy path (sameboatplatform.com): X-Forwarded-Host should be sameboatplatform.com -> cookie Domain=sameboatplatform.com (no leading dot).
+# - Direct Render path (api-sameboat.onrender.com): no apex match -> omit Domain -> host-only cookie.

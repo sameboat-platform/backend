@@ -35,8 +35,10 @@ public class SameboatProperties {
     public static class Cookie {
         /** Whether the session cookie should be marked Secure (HTTPS only). */
         private boolean secure = false;
-        /** Optional explicit cookie domain (blank => omit attribute). */
+        /** Optional explicit cookie domain (blank => omit attribute). Avoid leading dots. */
         private String domain = ""; // empty -> no domain attribute
+        /** Allowed apex domains to use if explicit domain is blank and host matches these suffixes. */
+        private List<String> validDomains = List.of("sameboatplatform.com", "sameboatplatform.org");
     }
     /** Session lifetime configuration. */
     @Getter @Setter
