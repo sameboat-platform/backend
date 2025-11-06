@@ -5,6 +5,7 @@ import com.sameboat.backend.auth.dto.RegisterRequest;
 import com.sameboat.backend.auth.session.SessionService;
 import com.sameboat.backend.common.ErrorResponse;
 import com.sameboat.backend.config.SameboatProperties;
+import com.sameboat.backend.user.UserMapper;
 import com.sameboat.backend.user.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -147,13 +148,15 @@ public class AuthController {
         var userOpt = userService.getByEmailNormalized(emailNorm);
         var authCfg = props.getAuth();
         if (userOpt.isEmpty()) {
+            // extra diagnostic log to differentiate cause of 401
+            log.warn("Login failed - user not found email={}", emailNorm);
             if (authCfg.isDevAutoCreate() && authCfg.getStubPassword().equals(request.password())) {
                 log.info("Auto-creating dev user email={}", emailNorm);
                 var created = userService.registerNew(emailNorm, request.password(), passwordEncoder);
                 var session = sessionService.createSession(created.getId(), java.time.Duration.ofDays(props.getSession().getTtlDays()));
                 response.addCookie(buildSessionCookie(session.getId().toString()));
                 rateLimiter.reset(key);
-                return ResponseEntity.ok(new LoginResponse(com.sameboat.backend.user.UserMapper.toDto(created)));
+                return ResponseEntity.ok(new LoginResponse(UserMapper.toDto(created)));
             }
             if (rateLimiter.recordFailure(key)) {
                 return rateLimited(key);
@@ -162,6 +165,8 @@ public class AuthController {
         }
         var user = userOpt.get();
         if (!userService.passwordMatches(user, request.password(), passwordEncoder)) {
+            // extra diagnostic log to differentiate cause of 401
+            log.warn("Login failed - password mismatch email={}", emailNorm);
             if (rateLimiter.recordFailure(key)) {
                 return rateLimited(key);
             }
@@ -171,7 +176,7 @@ public class AuthController {
         log.info("Login success userId={} email={} sessionId={}", user.getId(), user.getEmail(), session.getId());
         response.addCookie(buildSessionCookie(session.getId().toString()));
         rateLimiter.reset(key);
-        return ResponseEntity.ok(new LoginResponse(com.sameboat.backend.user.UserMapper.toDto(user)));
+        return ResponseEntity.ok(new LoginResponse(UserMapper.toDto(user)));
     }
 
     /**
