@@ -44,6 +44,30 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(new ErrorResponse("VALIDATION_ERROR", msg));
     }
 
+    /** Adds a clearer 400 for malformed JSON or wrong Content-Type. */
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull org.springframework.http.converter.HttpMessageNotReadableException ex,
+                                                                  @NonNull HttpHeaders headers,
+                                                                  @NonNull HttpStatusCode status,
+                                                                  @NonNull WebRequest request) {
+        String ct = request.getHeader("Content-Type");
+        String msg = "Malformed request body or wrong Content-Type (expected application/json). Content-Type=" + ct;
+        log.debug("Message not readable: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("VALIDATION_ERROR", msg));
+    }
+
+    /** Return JSON for unsupported media type (e.g., text/plain where JSON expected). */
+    @Override
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(@NonNull org.springframework.web.HttpMediaTypeNotSupportedException ex,
+                                                                     @NonNull HttpHeaders headers,
+                                                                     @NonNull HttpStatusCode status,
+                                                                     @NonNull WebRequest request) {
+        String msg = "Unsupported Content-Type. Use application/json";
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(new ErrorResponse("VALIDATION_ERROR", msg));
+    }
+
     /** Maps bean validation (method param) violations to a 400 response. */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {

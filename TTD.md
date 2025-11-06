@@ -33,6 +33,7 @@ This backlog captures agreed future improvements not yet implemented. Items are 
 | AUTH-001 | Password Hashing | Replace stub `dev` password with BCrypt + user creation flow | P1 | Pre-req for registration feature |
 | AUTH-002 | Registration Endpoint | `POST /auth/register` minimal payload (email, password) | P2 | Requires AUTH-001 |
 | AUTH-003 | JWT Transition Prototype | Issue short-lived access + refresh tokens, maintain revocation list or reuse sessions table | P2 | Evaluate complexity vs current opaque session |
+| AUTH-004 | Duplicate Email UX Flow | Friendly UX when email already exists: handle 409 with code `EMAIL_EXISTS` by showing actionable message (“An account with this email already exists.”) and CTAs to Sign In and (future) Reset Password. | P1 | Backend already returns 409 with `EMAIL_EXISTS`. FE: map error to message; avoid generic “Unexpected error”. Add E2E/integration test. Keep enumeration risk minimal (no extra details). |
 
 ---
 ## 5. Testing & Coverage
@@ -75,6 +76,7 @@ Name it something clear like “Protect main (PR + CI)” and you’re done.
 3. MIG-002 (failure annotations) + MIG-001 (PR comment)
 4. AUTH-002 (registration) / MIG-003 (next migration helper)
 5. DEV-001 (run-dev.ps1)
+6. AUTH-004 (Registration duplicate email UX flow)
 
 ---
 ## 10. Implementation Notes (Guidelines)
